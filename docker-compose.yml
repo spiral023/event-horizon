@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  api:
+    build: ./backend
+    env_file:
+      - ./backend/.env
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./data/data.db}
+      - SECRET_KEY=${SECRET_KEY:-change-me}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:5173}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - LLM_MODEL=${LLM_MODEL:-gpt-4.1-mini}
+    volumes:
+      - ./backend/data:/app/data
+    restart: unless-stopped
+    networks:
+      - proxy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.eventhorizon-api.entrypoints=websecure
+      - traefik.http.routers.eventhorizon-api.rule=Host(`api.event-horizon.sp23.online`)
+      - traefik.http.routers.eventhorizon-api.tls=true
+      - traefik.http.services.eventhorizon-api.loadbalancer.server.port=8000
+
+networks:
+  proxy:
+    external: true

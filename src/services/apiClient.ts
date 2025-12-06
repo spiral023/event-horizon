@@ -198,22 +198,31 @@ export const getCampaign = async (campaignId: string): Promise<Campaign | null> 
   return campaigns.find(c => c.id === campaignId) || null;
 };
 
-export const createCampaign = async (payload: Partial<Campaign>): Promise<Campaign> => {
+export const createCampaign = async (
+  payload: Partial<Campaign> & { region?: EventOption['location_region'] }
+): Promise<Campaign> => {
   await delay(400);
   const campaigns = storage.get<Campaign[]>('campaigns', []);
+
+  const selectedRegion = payload.region || 'OÇ-';
+  const eventOptions =
+    payload.event_options ||
+    mockEventOptions.filter((option) => selectedRegion === 'OÇ-' || option.location_region === selectedRegion);
+  const stretchGoals =
+    payload.stretch_goals || mockStretchGoals.map(g => ({ ...g, id: generateId() }));
   
   const newCampaign: Campaign = {
     id: generateId(),
     name: payload.name || 'Neues Team Event',
     dept_code: payload.dept_code || '',
     target_date_range: payload.target_date_range || '',
-    status: 'voting',
+    status: payload.status || 'voting',
     total_budget_needed: payload.total_budget_needed || 2000,
     company_budget_available: payload.company_budget_available || 1000,
-    external_sponsors: 0,
-    private_contributions: [],
-    stretch_goals: mockStretchGoals.map(g => ({ ...g, id: generateId() })),
-    event_options: mockEventOptions,
+    external_sponsors: payload.external_sponsors ?? 0,
+    private_contributions: payload.private_contributions || [],
+    stretch_goals: stretchGoals,
+    event_options: eventOptions,
     created_at: Date.now(),
   };
   
