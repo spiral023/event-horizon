@@ -1,0 +1,16 @@
+{
+  "name": "TeamVote",
+  "short_name": "TeamVote",
+  "description": "Team-Events planen, abstimmen und Budget sammeln",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0c1222",
+  "theme_color": "#0ea5e9",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}

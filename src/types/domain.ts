@@ -1,0 +1,85 @@
+export interface EventOption {
+  id: string;
+  title: string;
+  category: 'Action' | 'Food' | 'Relax' | 'Party';
+  tags: string[];
+  location_region: 'OÖ' | 'Tirol' | 'Sbg' | 'Stmk' | 'Ktn';
+  est_price_pp: number;
+  min_participants?: number;
+  accessibility_flags: ('wheelchair' | 'vegan' | 'pregnant_friendly')[];
+  weather_dependent: boolean;
+  image_url?: string;
+  description?: string;
+  is_mystery?: boolean;
+}
+
+export interface StretchGoal {
+  id: string;
+  amount_threshold: number;
+  reward_description: string;
+  unlocked: boolean;
+  icon?: string;
+}
+
+export type BadgeType = 'whale' | 'early_bird' | 'closer' | null;
+
+export interface PrivateContribution {
+  id: string;
+  user_name: string;
+  amount: number;
+  is_hero: boolean;
+  is_anonymous?: boolean;
+  badge?: BadgeType;
+  timestamp: number;
+}
+
+export type CampaignStatus = 'voting' | 'funding' | 'booked';
+
+export interface Campaign {
+  id: string;
+  name: string;
+  dept_code: string;
+  target_date_range: string;
+  status: CampaignStatus;
+  total_budget_needed: number;
+  company_budget_available: number;
+  external_sponsors: number;
+  private_contributions: PrivateContribution[];
+  stretch_goals: StretchGoal[];
+  event_options: EventOption[];
+  winning_event_id?: string;
+  created_at: number;
+}
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  dept_code: string;
+  hobbies: string[];
+  history: {
+    liked_categories: string[];
+  };
+  super_likes_remaining: number;
+}
+
+export interface Vote {
+  event_id: string;
+  weight: number;
+  is_super_like: boolean;
+}
+
+export interface TeamAnalytics {
+  action_level: number;
+  food_focus: number;
+  outdoor_wish: number;
+  compromise_score: number;
+  persona_label: string;
+  persona_description: string;
+  top_categories: string[];
+  participation_rate: number;
+}
+
+export interface Availability {
+  date: string;
+  slots: ('morning' | 'afternoon' | 'evening')[];
+}
