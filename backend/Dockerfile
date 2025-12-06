@@ -6,8 +6,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
 
+# Dependencies installieren und Datenordner anlegen
+RUN pip install --no-cache-dir -r requirements.txt && \
+    mkdir -p /app/data
+
+# Applikationscode kopieren
 COPY app ./app
 
 EXPOSE 8000
