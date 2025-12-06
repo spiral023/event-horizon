@@ -63,6 +63,8 @@ export const QROnboarding = ({ mode }: QROnboardingProps) => {
     return normalizeDeptCode(code);
   }, [token, searchParams]);
 
+  const hasDeepLink = Boolean(parsedDeepLink);
+
   const joinWithCode = (code: string) => {
     const normalized = normalizeDeptCode(code);
     setDeptCode(normalized);
@@ -101,6 +103,7 @@ export const QROnboarding = ({ mode }: QROnboardingProps) => {
         const parsed = normalizeDeptCode(code);
         if (parsed) {
           joinWithCode(parsed);
+          setScanned(true);
         }
       }, 100);
     }
@@ -109,10 +112,10 @@ export const QROnboarding = ({ mode }: QROnboardingProps) => {
 
   // Check camera support
   useEffect(() => {
-    if (typeof navigator !== 'undefined' && navigator.mediaDevices?.getUserMedia) {
+    if (!hasDeepLink && typeof navigator !== 'undefined' && navigator.mediaDevices?.getUserMedia) {
       setCameraSupported(true);
     }
-  }, []);
+  }, [hasDeepLink]);
 
   const copyCode = () => {
     navigator.clipboard.writeText(generatedCode);
@@ -198,7 +201,7 @@ export const QROnboarding = ({ mode }: QROnboardingProps) => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {!scanned ? (
+          {!scanned && !hasDeepLink ? (
             <>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Dein Name</label>
