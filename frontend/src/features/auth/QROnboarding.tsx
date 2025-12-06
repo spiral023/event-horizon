@@ -155,6 +155,7 @@ export const QROnboarding = ({ mode }: QROnboardingProps) => {
             </div>
 
             <div className="flex items-center gap-2 p-3 bg-secondary rounded-xl">
+              <div className="w-11 shrink-0" aria-hidden="true" />
               <code className="flex-1 text-center font-mono text-lg font-bold tracking-wider">
                 {generatedCode}
               </code>

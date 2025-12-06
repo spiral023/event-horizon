@@ -13,6 +13,7 @@ import { getCampaign, submitContribution, getTeamAnalytics, getFundingPercentage
 import { useAppStore } from '@/store/appStore';
 import type { Campaign, TeamAnalytics } from '@/types/domain';
 import { toast } from 'sonner';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const CampaignDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -104,6 +105,7 @@ const CampaignDetail = () => {
               <h1 className="font-display font-bold">{campaign.name}</h1>
               <p className="text-xs text-muted-foreground">{campaign.target_date_range}</p>
             </div>
+            <ThemeToggle />
             {campaign.status === 'voting' && (
               <Button variant="gradient" size="sm" onClick={() => navigate(`/voting/${id}`)}>
                 <Vote className="w-4 h-4" />

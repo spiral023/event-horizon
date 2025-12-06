@@ -12,9 +12,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from '@/components/ui/sonner';
 import { createCampaign } from '@/services/apiClient';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAppStore } from '@/store/appStore';
 
 type RegionValue = EventOption['location_region'];
+
 
 
 const regionOptions: { value: RegionValue; label: string }[] = [
@@ -112,6 +114,9 @@ const CreateCampaign = () => {
               <p className="text-xs text-muted-foreground">Dept: {deptCode || '--'}</p>
               <h1 className="font-display font-bold leading-tight">Neues Team-Event</h1>
             </div>
+          </div>
+          <div className="ml-auto">
+            <ThemeToggle />
           </div>
         </div>
       </header>

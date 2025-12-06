@@ -4,10 +4,12 @@ import { LogOut, Sparkles, QrCode, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CampaignList } from "@/features/campaigns/CampaignList";
 import { useAppStore } from "@/store/appStore";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Dashboard = () => {
   const { user, deptCode, logout } = useAppStore();
   const navigate = useNavigate();
+
 
   const handleLogout = () => {
     logout();
@@ -26,13 +28,13 @@ const Dashboard = () => {
               </div>
               <div>
                 <h1 className="font-display font-bold">TeamVote</h1>
-                <p className="text-xs text-muted-foreground">{deptCode}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon" onClick={() => navigate("/qr-create")}>
                 <QrCode className="w-5 h-5" />
               </Button>
+              <ThemeToggle />
               <Button variant="ghost" size="icon" onClick={handleLogout}>
                 <LogOut className="w-5 h-5" />
               </Button>
@@ -58,6 +60,12 @@ const Dashboard = () => {
             <p className="text-muted-foreground mb-6">
               Starte eine neue Kampagne, teile den QR-Code oder stimme bei bestehenden Events ab.
             </p>
+            {deptCode && (
+              <div className="flex items-center gap-2 p-3 bg-secondary rounded-xl mb-4">
+                <p className="text-sm text-muted-foreground">Abteilungscode:</p>
+                <span className="font-semibold text-foreground">{deptCode}</span>
+              </div>
+            )}
             <div className="flex flex-wrap gap-3">
               <Button variant="gradient" onClick={() => navigate("/create")}>
                 <Plus className="w-4 h-4" />
