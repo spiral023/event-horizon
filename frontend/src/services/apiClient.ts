@@ -180,8 +180,18 @@ const request = async <T>(path: string, init: RequestInit = {}): Promise<T> => {
   const data = isJson ? await res.json().catch(() => null) : await res.text().catch(() => null);
 
   if (!res.ok) {
-    const detail = (data && (data.detail || data.message)) || res.statusText || 'Request failed';
-    throw new ApiError(detail, res.status, data);
+    const rawDetail = (data && (data.detail || data.message)) || res.statusText || 'Request failed';
+    let message: string;
+    if (Array.isArray(rawDetail)) {
+      message = rawDetail
+        .map((d: any) => d?.msg || d?.message || JSON.stringify(d))
+        .join('; ');
+    } else if (typeof rawDetail === 'object') {
+      message = rawDetail?.msg || rawDetail?.message || JSON.stringify(rawDetail);
+    } else {
+      message = String(rawDetail);
+    }
+    throw new ApiError(message, res.status, data);
   }
 
   return (data as T) ?? (undefined as T);
