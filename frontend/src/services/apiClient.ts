@@ -297,10 +297,24 @@ export const createCampaign = async (payload: CreateCampaignInput): Promise<Camp
   const resolvedEvents = await resolveEventOptions(region);
   const stretchGoals = stretch_goals && stretch_goals.length ? stretch_goals : fallbackStretchGoals;
 
-  const eventOptionPayload =
-    resolvedEvents.source === 'api'
-      ? resolvedEvents.options.map((option) => ({ id: option.id }))
-      : resolvedEvents.options.map(({ id, ...option }) => option);
+  const sanitizeEventOption = (option: EventOption) => ({
+    id: option.id,
+    title: option.title,
+    category: option.category,
+    tags: option.tags,
+    location_region: option.location_region,
+    est_price_pp: option.est_price_pp,
+    min_participants: option.min_participants,
+    accessibility_flags: option.accessibility_flags,
+    weather_dependent: option.weather_dependent,
+    image_url: option.image_url,
+    description: option.description,
+    is_mystery: option.is_mystery,
+  });
+
+  const eventOptionPayload = (event_options?.length ? event_options : resolvedEvents.options).map(
+    sanitizeEventOption
+  );
 
   const body = {
     ...rest,
