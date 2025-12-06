@@ -33,6 +33,11 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Skip non-http(s) schemes (e.g., chrome-extension)
+  if (!request.url.startsWith("http")) {
+    return;
+  }
+
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached;

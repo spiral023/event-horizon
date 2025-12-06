@@ -95,7 +95,7 @@ const CampaignDetail = () => {
   return (
     <div className="min-h-screen bg-background pb-8">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
-        <div className="container max-w-lg mx-auto px-4 py-4">
+        <div className="container max-w-5xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
               <ArrowLeft className="w-5 h-5" />
@@ -114,7 +114,7 @@ const CampaignDetail = () => {
         </div>
       </header>
 
-      <main className="container max-w-lg mx-auto px-4 py-6">
+      <main className="container max-w-5xl mx-auto px-4 py-8">
         <Tabs defaultValue="budget" className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-6">
             <TabsTrigger value="budget">Budget</TabsTrigger>
@@ -129,14 +129,32 @@ const CampaignDetail = () => {
           </TabsList>
 
           <TabsContent value="budget" className="space-y-4">
-            <BudgetOverview campaign={campaign} />
-            <StretchGoals goals={campaign.stretch_goals} currentPercentage={fundingPercentage} />
-            <ContributionForm onSubmit={handleContribution} isSubmitting={submitting} />
-            <WallOfFame contributions={campaign.private_contributions} />
+            <div className="grid gap-4 lg:grid-cols-12">
+              <div className="space-y-4 lg:col-span-7">
+                <BudgetOverview campaign={campaign} />
+                <ContributionForm onSubmit={handleContribution} isSubmitting={submitting} />
+              </div>
+              <div className="space-y-4 lg:col-span-5">
+                <StretchGoals goals={campaign.stretch_goals} currentPercentage={fundingPercentage} />
+                <WallOfFame contributions={campaign.private_contributions} />
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="schedule">
-            <DateGrid onSubmit={handleAvailability} />
+            <div className="grid gap-4 lg:grid-cols-12">
+              <div className="lg:col-span-8">
+                <DateGrid onSubmit={handleAvailability} />
+              </div>
+              <div className="lg:col-span-4 space-y-3 text-sm text-muted-foreground border border-border rounded-2xl p-4 bg-secondary/40">
+                <p className="font-semibold text-foreground">Tipps für Terminfindung</p>
+                <ul className="list-disc pl-4 space-y-1">
+                  <li>Wochenenden bevorzugen für Outdoor-Events.</li>
+                  <li>Mindestens zwei Slots pro Person anfragen.</li>
+                  <li>Später Verfügbarkeiten aktualisieren? Einfach neu absenden.</li>
+                </ul>
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-4">
@@ -154,3 +172,4 @@ const CampaignDetail = () => {
 };
 
 export default CampaignDetail;
+

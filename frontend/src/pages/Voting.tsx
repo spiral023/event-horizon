@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ArrowLeft, Vote } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { TinderDeck } from '@/features/voting/TinderDeck';
-import { getCampaign, submitVotes } from '@/services/apiClient';
-import { useAppStore } from '@/store/appStore';
-import type { Campaign, Vote as VoteType } from '@/types/domain';
-import { toast } from 'sonner';
+﻿import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { ArrowLeft, Vote } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { TinderDeck } from "@/features/voting/TinderDeck";
+import { getCampaign, submitVotes } from "@/services/apiClient";
+import { useAppStore } from "@/store/appStore";
+import type { Campaign, Vote as VoteType } from "@/types/domain";
+import { toast } from "sonner";
 
 const Voting = () => {
   const { id } = useParams<{ id: string }>();
@@ -24,7 +24,7 @@ const Voting = () => {
         setCampaign(data);
         resetVoting();
       } catch (error) {
-        console.error('Failed to fetch campaign:', error);
+        console.error("Failed to fetch campaign:", error);
       } finally {
         setLoading(false);
       }
@@ -36,10 +36,10 @@ const Voting = () => {
     if (!id) return;
     try {
       await submitVotes(id, votes);
-      toast.success('Deine Stimmen wurden gespeichert!');
+      toast.success("Deine Stimmen wurden gespeichert!");
       navigate(`/campaign/${id}`);
     } catch (error) {
-      toast.error('Fehler beim Speichern');
+      toast.error("Fehler beim Speichern");
     }
   };
 
@@ -56,7 +56,7 @@ const Voting = () => {
       <div className="min-h-screen bg-background flex items-center justify-center p-6">
         <div className="text-center">
           <h2 className="text-xl font-bold mb-2">Kampagne nicht gefunden</h2>
-          <Button onClick={() => navigate('/dashboard')}>Zurück</Button>
+          <Button onClick={() => navigate("/dashboard")}>Zurück</Button>
         </div>
       </div>
     );
@@ -65,9 +65,9 @@ const Voting = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
-        <div className="container max-w-lg mx-auto px-4 py-4">
+        <div className="container max-w-5xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
+            <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div className="flex-1">
@@ -81,10 +81,10 @@ const Voting = () => {
         </div>
       </header>
 
-      <main className="container max-w-lg mx-auto px-4 py-6">
+      <main className="container max-w-4xl mx-auto px-4 py-8">
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
           className="text-center mb-6"
         >
           <p className="text-muted-foreground">

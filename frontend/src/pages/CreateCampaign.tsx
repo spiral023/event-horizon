@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Coins, PiggyBank, Sparkles, Wand2 } from 'lucide-react';
@@ -86,7 +86,7 @@ const CreateCampaign = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
-        <div className="container max-w-2xl mx-auto px-4 py-4 flex items-center gap-3">
+        <div className="container max-w-5xl mx-auto px-4 py-4 flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
@@ -102,7 +102,7 @@ const CreateCampaign = () => {
         </div>
       </header>
 
-      <main className="container max-w-2xl mx-auto px-4 py-8 space-y-6">
+      <main className="container max-w-5xl mx-auto px-4 py-8 space-y-6">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -242,3 +242,5 @@ const CreateCampaign = () => {
 };
 
 export default CreateCampaign;
+
+
