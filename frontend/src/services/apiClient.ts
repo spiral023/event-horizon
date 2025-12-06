@@ -41,7 +41,7 @@ const fallbackEventOptions: EventOption[] = [
     accessibility_flags: ['vegan', 'wheelchair'],
     weather_dependent: false,
     image_url: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600',
-    description: 'Kulinarisches Erlebnis auf hÃ¶chstem Niveau mit regionalen SpezialitÃ¤ten.',
+    description: 'Kulinarisches Erlebnis auf höchstem Niveau mit regionalen Spezialitäten.',
   },
   {
     id: 'evt-3',
@@ -67,7 +67,7 @@ const fallbackEventOptions: EventOption[] = [
     accessibility_flags: [],
     weather_dependent: false,
     image_url: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600',
-    description: 'LegendÃ¤re Club-Nacht mit DJ-Sets und VIP-Bereich fÃ¼r das Team.',
+    description: 'Legendäre Club-Nacht mit DJ-Sets und VIP-Bereich für das Team.',
   },
   {
     id: 'evt-5',
@@ -93,11 +93,11 @@ const fallbackEventOptions: EventOption[] = [
     accessibility_flags: ['wheelchair'],
     weather_dependent: true,
     image_url: 'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=600',
-    description: 'Weinverkostung und KellerfÃ¼hrung in einem der schÃ¶nsten Weingebiete Ã–sterreichs.',
+    description: 'Weinverkostung und Kellerführung in einem der schönsten Weingebiete Österreichs.',
   },
   {
     id: 'mystery-1',
-    title: 'Ãœberraschungsevent',
+            title: 'Überraschungsevent',
     category: 'Action',
     tags: ['mystery', 'surprise', 'adventure'],
     location_region: 'AT',
@@ -105,7 +105,7 @@ const fallbackEventOptions: EventOption[] = [
     accessibility_flags: [],
     weather_dependent: false,
     is_mystery: true,
-    description: 'Kategorie: Action â€“ Das Team erfÃ¤hrt erst am Eventtag, was passiert!',
+    description: 'Kategorie: Action – Das Team erfährt erst am Eventtag, was passiert!',
   },
   {
     id: 'evt-7',
@@ -118,7 +118,7 @@ const fallbackEventOptions: EventOption[] = [
     accessibility_flags: ['wheelchair'],
     weather_dependent: false,
     image_url: 'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=600',
-    description: 'Knifflige RÃ¤tsel lÃ¶sen und gemeinsam aus dem Raum entkommen.',
+    description: 'Knifflige Rätsel lösen und gemeinsam aus dem Raum entkommen.',
   },
 ];
 
@@ -126,23 +126,23 @@ const fallbackStretchGoals: StretchGoal[] = [
   {
     id: 'sg-1',
     amount_threshold: 100,
-    reward_description: 'Event finanziert! ðŸŽ‰',
+    reward_description: 'Event finanziert! 🎉',
     unlocked: false,
-    icon: 'ðŸŽ¯',
+    icon: '🎉',
   },
   {
     id: 'sg-2',
     amount_threshold: 110,
-    reward_description: 'Erste Runde GetrÃ¤nke geht aufs Haus! ðŸ»',
+    reward_description: 'Erste Runde Getränke geht aufs Haus! 🍻',
     unlocked: false,
-    icon: 'ðŸº',
+    icon: '🍻',
   },
   {
     id: 'sg-3',
     amount_threshold: 125,
-    reward_description: 'Upgrade auf 4-Sterne-Hotel! â­',
+    reward_description: 'Upgrade auf 4-Sterne-Hotel! 🏨',
     unlocked: false,
-    icon: 'ðŸ¨',
+    icon: '🏨',
   },
 ];
 
@@ -219,7 +219,7 @@ const getDefaultAnalytics = (): TeamAnalytics => ({
   outdoor_wish: 25,
   compromise_score: 85,
   persona_label: 'Die Entdecker',
-  persona_description: 'Euer Team ist offen fÃ¼r alles und probiert gerne Neues aus!',
+  persona_description: 'Euer Team ist offen für alles und probiert gerne Neues aus!',
   top_categories: ['Action', 'Food'],
   participation_rate: 92,
 });
@@ -359,4 +359,6 @@ export const getTotalFunded = (campaign: Campaign): number => {
 export const getFundingPercentage = (campaign: Campaign): number => {
   return Math.min((getTotalFunded(campaign) / campaign.total_budget_needed) * 100, 150);
 };
+
+
 
