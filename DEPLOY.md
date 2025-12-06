@@ -1,8 +1,8 @@
-# Deployment-Guide (Einsteigerfreundlich, Deutsch)
+﻿# Deployment-Guide (Einsteigerfreundlich, Deutsch)
 
 Dieses Projekt besteht aus:
-- Frontend: Vite/React (Port 8080 im Dev), nutzt `VITE_API_URL` für API-Calls.
-- Backend: FastAPI + SQLite (Port 8000), Environment über `backend/.env`.
+- Frontend: Vite/React (im Ordner `frontend/`, Port 8080 im Dev), nutzt `VITE_API_URL` für API-Calls.
+- Backend: FastAPI + SQLite (Ordner `backend/`, Port 8000), Environment über `backend/.env`.
 
 Nachfolgend drei gängige Wege, wie du deployen kannst:
 
@@ -22,9 +22,9 @@ git clone <REPO_URL> event-horizon && cd event-horizon
 
 # .envs prüfen/anpassen
 # backend/.env: Datenbank-Pfad, OPENROUTER_API_KEY, LLM_MODEL, CORS_ORIGINS
-# .env (Root): VITE_API_URL=http://<deine-domain-oder-ip>:8000/api
+# frontend/.env: VITE_API_URL=http://<deine-domain-oder-ip>:8000/api
 
-# Container starten
+# Container starten (nur Backend in Compose)
 docker compose up -d
 
 # Prüfen
@@ -32,7 +32,7 @@ docker compose ps
 curl http://localhost:8000/api/health
 ```
 
-Ingress/Domain: Traefik-Labels sind bereits im docker-compose hinterlegt. Passe Domain/Router-Regel im `docker-compose.yml` an oder nutze einen eigenen Reverse-Proxy (Nginx/Traefik) vor dem Backend. Das Frontend müsstest du separat als Static Build hosten (siehe Variante 2/3) oder einen zweiten Service hinzufügen, der `npm run build` ausliefert (z.B. mit `node:18-alpine` + `npm ci && npm run build && npx serve dist`).
+Frontend-Build bereitstellen: entweder separat hosten (siehe Variante 2/3) oder einen zusätzlichen Container hinzufügen, der `frontend/` baut und ausliefert (z.B. node:18-alpine mit `npm ci && npm run build` + Static Server).
 
 ## 2) Frontend auf Cloudflare Pages, Backend auf VPS
 Voraussetzungen: Cloudflare Account, Ubuntu-Server für das Backend (Docker oder uvicorn).
@@ -52,8 +52,8 @@ Optional als systemd-Service oder per Docker (siehe Variante 1).
 
 ### Frontend auf Cloudflare Pages
 1. Neues Pages-Projekt erstellen, Repository verbinden.
-2. Build-Befehl: `npm run build`
-3. Build-Output: `dist`
+2. Build-Befehl: `cd frontend && npm install && npm run build`
+3. Build-Output: `frontend/dist`
 4. Environment Variable in Pages: `VITE_API_URL` auf deine Backend-URL setzen, z.B. `https://api.deine-domain.tld/api`.
 5. Deploy ausführen.
 
@@ -72,7 +72,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers
 
 ### Frontend
 ```bash
-cd ..
+cd ../frontend
 sudo apt install -y nodejs npm
 npm install
 VITE_API_URL=http://<server-ip>:8000/api npm run build

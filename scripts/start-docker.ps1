@@ -3,7 +3,8 @@
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
-Set-Location $root
+$repoRoot = Resolve-Path (Join-Path $root "..")
+Set-Location $repoRoot
 
 Write-Host "Starting docker-compose services..." -ForegroundColor Cyan
 docker-compose up -d

@@ -1,6 +1,6 @@
 ﻿# TeamVote – Event Planning & Voting (Vite + React + FastAPI)
 
-TeamVote ist eine deutsche, mobile-first Web-App für Team-Events: Ideen sammeln (Tinder-Style Voting inkl. Super-Like/Mystery), Termine finden, Budget einsammeln (Stretch Goals, Wall of Fame), Analytics und QR-Onboarding. Frontend spricht mit dem FastAPI-Backend (SQLite).
+TeamVote ist eine deutsche, mobile-first Web-App für Team-Events: Ideen sammeln (Tinder-Style Voting inkl. Super-Like/Mystery), Termine finden, Budget einsammeln (Stretch Goals, Wall of Fame), Analytics und QR-Onboarding. Frontend (Ordner `frontend/`) spricht mit dem FastAPI-Backend (SQLite).
 
 ## Features
 - Onboarding per Abteilungscode oder QR-Scan/QR-Share
@@ -18,7 +18,6 @@ TeamVote ist eine deutsche, mobile-first Web-App für Team-Events: Ideen sammeln
 ## Schnellstart (lokal)
 ```bash
 # Voraussetzungen: Node 18+, npm; Python 3.10+; optional Docker
-npm install
 
 # Backend (venv)
 cd backend
@@ -28,15 +27,17 @@ python -m venv .venv
 pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 
-# Frontend (neues Terminal im Repo-Root)
+# Frontend (neues Terminal)
+cd frontend
+npm install
 VITE_API_URL=http://localhost:8000/api npm run dev
 # App unter http://localhost:8080/
 ```
 
-Alternativ: `scripts/start-app.ps1` (Windows, startet Backend+Frontend) oder `docker compose up -d` (Backend-Container).
+Alternativ: `scripts/start-app.ps1` (Windows, startet Backend+Frontend) oder `docker compose up -d` (Backend-Container; nur Backend).
 
 ## Env Variablen
-- Root `.env`: `VITE_API_URL=http://localhost:8000/api`
+- `frontend/.env`: `VITE_API_URL=http://localhost:8000/api`
 - `backend/.env`: `DATABASE_URL`, `SECRET_KEY`, `CORS_ORIGINS`, `OPENROUTER_API_KEY`, `LLM_MODEL`
 
 ## Deployment

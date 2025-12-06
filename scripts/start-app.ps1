@@ -9,16 +9,20 @@ $ErrorActionPreference = "Stop"
 
 # Repo root
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
-Set-Location $root
+$repoRoot = Resolve-Path (Join-Path $root "..")
+Set-Location $repoRoot
+$frontendPath = Join-Path $repoRoot "frontend"
 
 # Frontend dependencies
 if (-not $SkipInstall) {
   Write-Host "Installing frontend dependencies (npm install)..." -ForegroundColor Cyan
+  Push-Location $frontendPath
   npm install
+  Pop-Location
 }
 
 # Backend venv + deps
-$venvPath = Join-Path $root "backend\.venv"
+$venvPath = Join-Path $repoRoot "backend\.venv"
 if (-not (Test-Path $venvPath)) {
   Write-Host "Creating backend venv..." -ForegroundColor Cyan
   python -m venv $venvPath
@@ -26,15 +30,15 @@ if (-not (Test-Path $venvPath)) {
 $venvPython = Join-Path $venvPath "Scripts\python.exe"
 Write-Host "Installing backend dependencies..." -ForegroundColor Cyan
 & $venvPython -m pip install --upgrade pip
-& $venvPython -m pip install -r (Join-Path $root "backend\requirements.txt")
+& $venvPython -m pip install -r (Join-Path $repoRoot "backend\requirements.txt")
 
 # Start backend
-$backendCmd = "cd `"$root\backend`"; ..\backend\.venv\Scripts\python -m uvicorn app.main:app --reload --port 8000"
+$backendCmd = "cd `"$repoRoot\backend`"; ..\backend\.venv\Scripts\python -m uvicorn app.main:app --reload --port 8000"
 Write-Host "Starting backend on http://localhost:8000 ..." -ForegroundColor Green
 Start-Process powershell -ArgumentList "-NoExit", "-Command", $backendCmd
 
 # Start frontend
-$frontendCmd = "cd `"$root`"; npm run dev"
+$frontendCmd = "cd `"$frontendPath`"; npm run dev"
 Write-Host "Starting frontend on http://localhost:8080 ..." -ForegroundColor Green
 Start-Process powershell -ArgumentList "-NoExit", "-Command", $frontendCmd
 
