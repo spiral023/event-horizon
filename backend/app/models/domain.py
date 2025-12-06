@@ -45,8 +45,10 @@ class EventCategory(str, Enum):
     party = "Party"
 
 
-class EventOption(SQLModel, table=True):
-    id: str = Field(default_factory=gen_id, primary_key=True, index=True)
+class EventOption(EventOptionBase, table=True):
+    __tablename__ = "event_options"
+    id: Optional[str] = Field(default=None, primary_key=True)
+    season: str = Field(default="all_year")  # Explicit field for table model just in case, though inherited
     title: str
     category: EventCategory
     tags: List[str] = Field(default_factory=list, sa_column=Column(JSON))

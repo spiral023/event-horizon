@@ -150,13 +150,85 @@ const CreateCampaign = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="range">Zeitraum</Label>
-                  <Input
-                    id="range"
-                    placeholder="z.B. 15.07 - 31.08"
-                    value={targetDateRange}
-                    onChange={(e) => setTargetDateRange(e.target.value)}
-                  />
+                  <Label>Zeitraum (Grobe Planung)</Label>
+                  <Tabs defaultValue="season" className="w-full">
+                    <TabsList className="grid w-full grid-cols-4">
+                      <TabsTrigger value="season">Jahreszeit</TabsTrigger>
+                      <TabsTrigger value="month">Monat</TabsTrigger>
+                      <TabsTrigger value="week">KW</TabsTrigger>
+                      <TabsTrigger value="text">Freitext</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="season" className="pt-2 space-y-3">
+                      <div className="grid grid-cols-2 gap-2">
+                        {['Frühling', 'Sommer', 'Herbst', 'Winter'].map((season) => {
+                           const year = new Date().getFullYear();
+                           const val = `${season} ${year}`;
+                           return (
+                             <Button
+                               key={season}
+                               type="button"
+                               variant={targetDateRange === val ? 'default' : 'outline'}
+                               onClick={() => setTargetDateRange(val)}
+                               className="justify-start"
+                             >
+                               {season}
+                             </Button>
+                           );
+                        })}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Beispiel: "Sommer {new Date().getFullYear()}"
+                      </p>
+                    </TabsContent>
+
+                    <TabsContent value="month" className="pt-2 space-y-3">
+                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                        {['Jän', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'].map((mon) => {
+                           const year = new Date().getFullYear();
+                           const val = `${mon} ${year}`;
+                           return (
+                             <Button
+                               key={mon}
+                               type="button"
+                               size="sm"
+                               variant={targetDateRange === val ? 'default' : 'outline'}
+                               onClick={() => setTargetDateRange(val)}
+                             >
+                               {mon}
+                             </Button>
+                           );
+                        })}
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="week" className="pt-2 space-y-3">
+                      <div className="flex items-center gap-4">
+                        <Input
+                           type="number"
+                           min={1}
+                           max={52}
+                           placeholder="KW"
+                           onChange={(e) => {
+                             const kw = e.target.value;
+                             if(kw) setTargetDateRange(`KW ${kw} ${new Date().getFullYear()}`);
+                           }}
+                        />
+                        <div className="text-sm font-medium whitespace-nowrap">
+                          {targetDateRange.startsWith('KW') ? targetDateRange : `KW -- ${new Date().getFullYear()}`}
+                        </div>
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="text" className="pt-2">
+                      <Input
+                        id="range"
+                        placeholder="z.B. 15.07 - 31.08"
+                        value={targetDateRange}
+                        onChange={(e) => setTargetDateRange(e.target.value)}
+                      />
+                    </TabsContent>
+                  </Tabs>
                 </div>
 
                 <Tabs value={budgetMode} onValueChange={(value) => setBudgetMode(value as any)} className="w-full">

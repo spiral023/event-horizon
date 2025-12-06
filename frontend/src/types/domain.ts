@@ -13,6 +13,7 @@ export interface EventOption {
   image_url?: string;
   description?: string;
   is_mystery?: boolean;
+  season?: 'summer' | 'winter' | 'all_year';
 }
 
 export interface StretchGoal {

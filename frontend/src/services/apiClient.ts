@@ -363,18 +363,52 @@ const fallbackEventsForRegion = (region?: RegionCode) => {
   return fallbackEventOptions.filter((event) => event.location_region.toLowerCase() === normalized);
 };
 
-const resolveEventOptions = async (region?: RegionCode) => {
+const getSeasonFromDate = (dateStr: string): 'summer' | 'winter' | 'all_year' => {
+  if (!dateStr) return 'all_year';
+  const lower = dateStr.toLowerCase();
+  
+  // Explicit Season Names
+  if (lower.includes('sommer')) return 'summer';
+  if (lower.includes('winter')) return 'winter';
+
+  // Month Names (German short/long) & Numeric
+  const winterKeywords = ['dez', 'jan', 'jän', 'feb', '.12.', '.01.', '.02.'];
+  const summerKeywords = ['jun', 'jul', 'aug', 'sep', '.06.', '.07.', '.08.'];
+
+  if (winterKeywords.some((k) => lower.includes(k))) return 'winter';
+  if (summerKeywords.some((k) => lower.includes(k))) return 'summer';
+
+  // Calendar Weeks (KW)
+  // Summer approx: End of May (KW 22) to Mid Sept (KW 38)
+  const kwMatch = lower.match(/kw\s*(\d+)/);
+  if (kwMatch && kwMatch[1]) {
+    const kw = parseInt(kwMatch[1], 10);
+    if (kw >= 22 && kw <= 38) return 'summer';
+    if (kw >= 48 || kw <= 10) return 'winter'; // Late Nov to Early March
+  }
+
+  return 'all_year';
+};
+
+const resolveEventOptions = async (region?: RegionCode, season: string = 'all_year') => {
   const fromApi = await safeGetEventOptions(region);
   const minCount = 3;
   const fallback = fallbackEventsForRegion(region);
+
+  const filterBySeason = (events: EventOption[]) => {
+    if (season === 'all_year') return events;
+    return events.filter((e) => !e.season || e.season === 'all_year' || e.season === season);
+  };
 
   // Wenn zu wenige aus der API kommen, mit Fallback auffüllen
   const merged =
     fromApi.length >= minCount
       ? fromApi
       : dedupeEventOptions([...fromApi, ...fallback]);
+  
+  const filtered = filterBySeason(merged);
 
-  return { options: merged, source: fromApi.length ? ('api' as const) : ('fallback' as const) };
+  return { options: filtered, source: fromApi.length ? ('api' as const) : ('fallback' as const) };
 };
 
 export const getCampaigns = async (deptCode: string): Promise<Campaign[]> => {
@@ -412,7 +446,9 @@ type CreateCampaignInput = {
 
 export const createCampaign = async (payload: CreateCampaignInput): Promise<Campaign> => {
   const { region, stretch_goals, event_options, ...rest } = payload;
-  const resolvedEvents = await resolveEventOptions(region);
+  
+  const season = getSeasonFromDate(payload.target_date_range);
+  const resolvedEvents = await resolveEventOptions(region, season);
   const stretchGoals = stretch_goals && stretch_goals.length ? stretch_goals : fallbackStretchGoals;
 
   const sanitizeEventOption = (option: EventOption) => ({
@@ -428,6 +464,7 @@ export const createCampaign = async (payload: CreateCampaignInput): Promise<Camp
     image_url: option.image_url,
     description: option.description,
     is_mystery: option.is_mystery,
+    season: option.season,
   });
 
   const baseEvents = event_options?.length ? event_options : resolvedEvents.options;

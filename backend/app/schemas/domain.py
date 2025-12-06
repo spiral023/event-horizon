@@ -6,18 +6,19 @@ from pydantic import BaseModel, ConfigDict, Field
 from app.models import BadgeType, CampaignStatus, EventCategory
 
 
-class EventOptionBase(BaseModel):
+class EventOptionBase(SQLModel):
     title: str
     category: EventCategory
-    tags: List[str] = []
-    location_region: str
+    tags: List[str] = Field(default_factory=list, sa_column=Column(JSON))
+    location_region: str  # e.g., "AT", "Tirol"
     est_price_pp: float
     min_participants: Optional[int] = None
-    accessibility_flags: List[str] = []
+    accessibility_flags: List[str] = Field(default_factory=list, sa_column=Column(JSON))
     weather_dependent: bool = False
     image_url: Optional[str] = None
     description: Optional[str] = None
     is_mystery: bool = False
+    season: str = "all_year"  # 'summer', 'winter', 'all_year'
 
 
 class EventOptionCreate(EventOptionBase):
