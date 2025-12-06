@@ -1,4 +1,4 @@
-const CACHE_NAME = "teamvote-cache-v1";
+const CACHE_NAME = "eventhorizon-cache-v1";
 const OFFLINE_ASSETS = ["/", "/index.html", "/manifest.json", "/favicon.ico"];
 
 self.addEventListener("install", (event) => {

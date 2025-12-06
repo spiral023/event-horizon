@@ -74,7 +74,7 @@ export const ContributionForm = ({ onSubmit, isSubmitting }: ContributionFormPro
               onChange={(e) => setAmount(e.target.value)}
               className="pl-10"
               min="1"
-              step="1"
+              step="any"
             />
           </div>
 

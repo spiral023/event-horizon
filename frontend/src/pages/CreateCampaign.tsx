@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Coins, PiggyBank, Sparkles, Wand2 } from 'lucide-react';
 import type { EventOption } from '@/types/domain';
@@ -24,7 +24,7 @@ const regionOptions: { value: RegionValue; label: string }[] = [
   { value: 'Tirol', label: 'Tirol & Berge' },
   { value: 'Stmk', label: 'Steiermark' },
   { value: 'Sbg', label: 'Salzburg' },
-  { value: 'Ktn', label: 'Kaernten' },
+  { value: 'Ktn', label: 'Kärnten' },
 ];
 
 const budgetPresets = [
@@ -107,9 +107,11 @@ const CreateCampaign = () => {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-primary-foreground" />
-            </div>
+            <Link to="/">
+              <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-primary-foreground" />
+              </div>
+            </Link>
             <div>
               <p className="text-xs text-muted-foreground">Dept: {deptCode || '--'}</p>
               <h1 className="font-display font-bold leading-tight">Neues Team-Event</h1>
@@ -171,7 +173,7 @@ const CreateCampaign = () => {
                         id="budget"
                         type="number"
                         min={0}
-                        step={50}
+                        step="any"
                         value={totalBudgetInput}
                         onChange={(e) => setTotalBudgetInput(Number(e.target.value) || 0)}
                       />
@@ -185,7 +187,7 @@ const CreateCampaign = () => {
                           id="budgetPerParticipant"
                           type="number"
                           min={0}
-                          step={5}
+                          step="any"
                           placeholder="z.B. 40"
                           value={budgetPerParticipant}
                           onChange={(e) => setBudgetPerParticipant(Number(e.target.value) || undefined)}
@@ -212,7 +214,7 @@ const CreateCampaign = () => {
                     id="companyBudget"
                     type="number"
                     min={0}
-                    step={50}
+                    step="any"
                     value={companyBudget}
                     onChange={(e) => setCompanyBudget(Number(e.target.value) || 0)}
                   />
@@ -254,7 +256,7 @@ const CreateCampaign = () => {
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground">
-                    Wir schlagen automatisch passende Aktivitaeten fuer diese Region vor.
+                    Wir schlagen automatisch passende Aktivitäten für diese Region vor.
                   </p>
                 </div>
 

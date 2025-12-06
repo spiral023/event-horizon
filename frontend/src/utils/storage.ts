@@ -1,4 +1,4 @@
-const STORAGE_PREFIX = 'teamvote_';
+const STORAGE_PREFIX = 'eventhorizon_';
 
 export const storage = {
   get<T>(key: string, defaultValue: T): T {

@@ -1,6 +1,6 @@
 {
-  "name": "TeamVote",
-  "short_name": "TeamVote",
+  "name": "EventHorizon",
+  "short_name": "EventHorizon",
   "description": "Team-Events planen, abstimmen und Budget sammeln",
   "start_url": "/",
   "display": "standalone",

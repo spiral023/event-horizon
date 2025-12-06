@@ -1,10 +1,11 @@
-﻿import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from 'react-router-dom';
 import { motion } from "framer-motion";
 import { LogOut, Sparkles, QrCode, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CampaignList } from "@/features/campaigns/CampaignList";
 import { useAppStore } from "@/store/appStore";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const Dashboard = () => {
   const { user, deptCode, logout } = useAppStore();
@@ -23,22 +24,35 @@ const Dashboard = () => {
         <div className="container max-w-5xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between gap-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-primary-foreground" />
-              </div>
+              <Link to="/">
+                <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-primary-foreground" />
+                </div>
+              </Link>
               <div>
-                <h1 className="font-display font-bold">TeamVote</h1>
+                <Link to="/" className="inline-block">
+              <h1 className="font-display font-bold">EventHorizon</h1>
+            </Link>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" onClick={() => navigate("/qr-create")}>
-                <QrCode className="w-5 h-5" />
-              </Button>
-              <ThemeToggle />
-              <Button variant="ghost" size="icon" onClick={handleLogout}>
-                <LogOut className="w-5 h-5" />
-              </Button>
-            </div>
+            <TooltipProvider>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon" onClick={() => navigate("/qr-create")}>
+                  <QrCode className="w-5 h-5" />
+                </Button>
+                <ThemeToggle />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={handleLogout}>
+                      <LogOut className="w-5 h-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Team verlassen</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </TooltipProvider>
           </div>
         </div>
       </header>
@@ -58,7 +72,7 @@ const Dashboard = () => {
               Plane euer nächstes Team-Event.
             </h2>
             <p className="text-muted-foreground mb-6">
-              Starte eine neue Kampagne, teile den QR-Code oder stimme bei bestehenden Events ab.
+              Plane ein neues Team-Event, teile den (QR-)Code oder stimme bei bestehenden Events ab.
             </p>
             {deptCode && (
               <div className="flex items-center gap-2 p-3 bg-secondary rounded-xl mb-4">
@@ -67,11 +81,7 @@ const Dashboard = () => {
               </div>
             )}
             <div className="flex flex-wrap gap-3">
-              <Button variant="gradient" onClick={() => navigate("/create")}>
-                <Plus className="w-4 h-4" />
-                Neue Kampagne
-              </Button>
-              <Button variant="outline" onClick={() => navigate("/qr-create")}>
+              <Button variant="outline" className="w-full" onClick={() => navigate("/qr-create")}>
                 <QrCode className="w-4 h-4" />
                 QR teilen
               </Button>

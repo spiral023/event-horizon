@@ -78,10 +78,6 @@ export const CampaignList = () => {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-display font-bold">Deine Events</h2>
-        <Button variant="gradient" size="sm" onClick={() => navigate('/create')}>
-          <Plus className="w-4 h-4" />
-          Neu
-        </Button>
       </div>
 
       {campaigns.length === 0 ? (

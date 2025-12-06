@@ -46,11 +46,11 @@ export const QROnboarding = ({ mode }: QROnboardingProps) => {
       /* not a URL */
     }
     const upper = trimmed.toUpperCase();
-    if (upper.includes('TEAMVOTE://JOIN/')) {
-      return upper.split('TEAMVOTE://JOIN/')[1] || upper;
+    if (upper.includes('EVENTHORIZON://JOIN/')) {
+      return upper.split('EVENTHORIZON://JOIN/')[1] || upper;
     }
-    if (upper.startsWith('TEAMVOTE://')) {
-      return upper.replace('TEAMVOTE://', '');
+    if (upper.startsWith('EVENTHORIZON://')) {
+      return upper.replace('EVENTHORIZON://', '');
     }
     if (upper.includes('/')) {
       const parts = upper.split('/');
@@ -102,7 +102,6 @@ export const QROnboarding = ({ mode }: QROnboardingProps) => {
     try {
       const blob = await toBlob(cardRef.current, {
         cacheBust: true,
-        backgroundColor: '#ffffff', // Ensure white background for the image
       });
 
       if (!blob) {
@@ -295,7 +294,7 @@ export const QROnboarding = ({ mode }: QROnboardingProps) => {
                       Falls deine Kamera blockiert ist: Code unten manuell einfügen.
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Deep-Link: teamvote://join/TEAM-XXXX
+                      Deep-Link: eventhorizon://join/TEAM-XXXX
                     </p>
                   </div>
                 </motion.div>

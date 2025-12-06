@@ -1,5 +1,5 @@
 ﻿import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from 'react-router-dom';
 import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
 import { DeptCodeForm } from "@/features/auth/DeptCodeForm";
@@ -24,10 +24,14 @@ const Index = () => {
           animate={{ opacity: 1, y: 0 }}
           className="inline-flex items-center gap-2"
         >
-          <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
-            <Sparkles className="w-5 h-5 text-primary-foreground" />
-          </div>
-          <span className="text-2xl font-display font-bold text-gradient">TeamVote</span>
+          <Link to="/">
+            <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-primary-foreground" />
+            </div>
+          </Link>
+          <Link to="/" className="inline-block">
+            <span className="text-2xl font-display font-bold text-gradient">EventHorizon</span>
+          </Link>
         </motion.div>
       </header>
 

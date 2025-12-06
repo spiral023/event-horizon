@@ -55,7 +55,7 @@ export const useAppStore = create<AppState>()(
       }),
     }),
     {
-      name: 'teamvote-storage',
+      name: 'eventhorizon-storage',
     }
   )
 );
