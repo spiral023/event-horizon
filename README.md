@@ -41,7 +41,7 @@ Alternativ: `scripts/start-app.ps1` (Windows, startet Backend+Frontend) oder `do
 - `backend/.env`: `DATABASE_URL`, `SECRET_KEY`, `CORS_ORIGINS`, `OPENROUTER_API_KEY`, `LLM_MODEL`
 
 ## Deployment
-- **Container auf VPS (empfohlen):** Docker & Compose installieren, `.env` setzen, `docker compose up -d`, Health: `http://<host>:8000/api/health`.
+- **Container auf VPS (empfohlen):** Docker & Compose installieren, `.env` setzen, `docker compose up -d`, Health: `http://<host>:8000/api/health`. Siehe `DEPLOY.md` für ein ausführliches Schnell-Setup unter `/opt/compose`.
 - **Cloudflare Pages (Frontend) + VPS (Backend):** Backend mit uvicorn oder Docker auf Port 8000 bereitstellen, `CORS_ORIGINS` auf Pages-Domain setzen, in Pages `VITE_API_URL=https://<dein-backend>/api` setzen, `npm run build`/`dist` als Output.
 - **Klassisch ohne Container:** Backend via venv + `uvicorn app.main:app --host 0.0.0.0 --port 8000`; Frontend bauen (`VITE_API_URL=http://<host>:8000/api npm run build`) und als Static Files (z.B. `npx serve dist`) hinter einen Reverse-Proxy legen.
 
