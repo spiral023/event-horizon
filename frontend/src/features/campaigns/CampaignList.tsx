@@ -52,6 +52,12 @@ export const CampaignList = () => {
     }
   };
 
+  const handleDetailsClick = (event: React.MouseEvent, campaign: Campaign) => {
+    event.stopPropagation();
+    setCurrentCampaign(campaign.id);
+    navigate(`/campaign/${campaign.id}`);
+  };
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -159,10 +165,14 @@ export const CampaignList = () => {
                         </div>
                       )}
                       
-                      <div className="flex items-center justify-end text-sm text-primary font-medium">
+                      <button
+                        type="button"
+                        onClick={(e) => handleDetailsClick(e, campaign)}
+                        className="flex items-center justify-end text-sm text-primary font-medium hover:underline"
+                      >
                         Details ansehen
                         <ChevronRight className="w-4 h-4 ml-1" />
-                      </div>
+                      </button>
                     </div>
                   </CardContent>
                 </Card>
