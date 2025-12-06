@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   api:
     build: ./backend
@@ -15,14 +13,15 @@ services:
       - ./backend/data:/app/data
     restart: unless-stopped
     networks:
-      - proxy
+      - traefik
     labels:
       - traefik.enable=true
       - traefik.http.routers.eventhorizon-api.entrypoints=websecure
       - traefik.http.routers.eventhorizon-api.rule=Host(`api.event-horizon.sp23.online`)
       - traefik.http.routers.eventhorizon-api.tls=true
       - traefik.http.services.eventhorizon-api.loadbalancer.server.port=8000
+      - traefik.http.routers.eventhorizon-api.certresolver=le
 
 networks:
-  proxy:
+  traefik:
     external: true

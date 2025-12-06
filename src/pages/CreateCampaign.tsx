@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Coins, PiggyBank, Sparkles, Wand2 } from 'lucide-react';
@@ -16,11 +16,11 @@ import { useAppStore } from '@/store/appStore';
 type RegionValue = EventOption['location_region'];
 
 const regionOptions: { value: RegionValue; label: string }[] = [
-  { value: 'OÇ-', label: 'Österreich (Standard)' },
+  { value: 'AT', label: 'Austria (Standard)' },
   { value: 'Tirol', label: 'Tirol & Berge' },
   { value: 'Stmk', label: 'Steiermark' },
   { value: 'Sbg', label: 'Salzburg' },
-  { value: 'Ktn', label: 'Kärnten' },
+  { value: 'Ktn', label: 'Kaernten' },
 ];
 
 const budgetPresets = [
@@ -65,7 +65,7 @@ const CreateCampaign = () => {
       const campaign = await createCampaign({
         name: name.trim() || 'Neues Team Event',
         dept_code: deptCode,
-        target_date_range: targetDateRange.trim() || 'Demnächst',
+        target_date_range: targetDateRange.trim() || 'Demnaechst',
         total_budget_needed: Math.max(totalBudget, 500),
         company_budget_available: Math.max(Math.min(companyBudget, totalBudget), 0),
         external_sponsors: 0,
@@ -95,7 +95,7 @@ const CreateCampaign = () => {
               <Sparkles className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Dept: {deptCode || '—'}</p>
+              <p className="text-xs text-muted-foreground">Dept: {deptCode || '--'}</p>
               <h1 className="font-display font-bold leading-tight">Neues Team-Event</h1>
             </div>
           </div>
@@ -115,7 +115,7 @@ const CreateCampaign = () => {
                 Event anlegen
               </CardTitle>
               <CardDescription>
-                Name, Zeitraum und Budget festlegen. Wir füllen dir passende Optionen automatisch auf.
+                Name, Zeitraum und Budget festlegen. Wir fuellen dir passende Optionen automatisch auf.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -178,7 +178,7 @@ const CreateCampaign = () => {
                   <Progress value={fundingProgress} variant={fundingProgress >= 100 ? 'success' : 'gradient'} />
                   <div className="text-xs text-muted-foreground flex items-center gap-2">
                     <Coins className="w-4 h-4" />
-                    Noch fehlen ƒ'ª{Math.max(totalBudget - companyBudget, 0)} für das Ziel.
+                    Noch fehlen EUR {Math.max(totalBudget - companyBudget, 0)} bis zum Ziel.
                   </div>
                 </div>
 
@@ -186,7 +186,7 @@ const CreateCampaign = () => {
                   <Label>Regionale Inspiration</Label>
                   <Select value={region} onValueChange={setRegion}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Region wählen" />
+                      <SelectValue placeholder="Region waehlen" />
                     </SelectTrigger>
                     <SelectContent>
                       {regionOptions.map((option) => (
@@ -197,7 +197,7 @@ const CreateCampaign = () => {
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground">
-                    Wir schlagen automatisch passende Aktivitäten für diese Region vor.
+                    Wir schlagen automatisch passende Aktivitaeten fuer diese Region vor.
                   </p>
                 </div>
 
@@ -213,7 +213,7 @@ const CreateCampaign = () => {
                         onClick={() => handlePreset(preset)}
                       >
                         <span>{preset.label}</span>
-                        <span className="text-xs text-muted-foreground">ƒ'ª{preset.total}</span>
+                        <span className="text-xs text-muted-foreground">EUR {preset.total}</span>
                       </Button>
                     ))}
                   </div>
@@ -230,7 +230,7 @@ const CreateCampaign = () => {
                 </Button>
 
                 <p className="text-xs text-muted-foreground text-center">
-                  {user?.name || 'Du'} startest eine Voting-Runde. Vorschläge, Stretch Goals und Voting-Karten werden automatisch befüllt.
+                  {user?.name || 'Du'} startest eine Voting-Runde. Vorschlaege, Stretch Goals und Voting-Karten werden automatisch befuellt.
                 </p>
               </form>
             </CardContent>

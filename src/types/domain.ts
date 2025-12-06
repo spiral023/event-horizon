@@ -1,9 +1,11 @@
+export type RegionCode = string;
+
 export interface EventOption {
   id: string;
   title: string;
   category: 'Action' | 'Food' | 'Relax' | 'Party';
   tags: string[];
-  location_region: 'OÖ' | 'Tirol' | 'Sbg' | 'Stmk' | 'Ktn';
+  location_region: RegionCode;
   est_price_pp: number;
   min_participants?: number;
   accessibility_flags: ('wheelchair' | 'vegan' | 'pregnant_friendly')[];
@@ -30,7 +32,7 @@ export interface PrivateContribution {
   is_hero: boolean;
   is_anonymous?: boolean;
   badge?: BadgeType;
-  timestamp: number;
+  created_at: string;
 }
 
 export type CampaignStatus = 'voting' | 'funding' | 'booked';
@@ -48,7 +50,7 @@ export interface Campaign {
   stretch_goals: StretchGoal[];
   event_options: EventOption[];
   winning_event_id?: string;
-  created_at: number;
+  created_at: string;
 }
 
 export interface UserProfile {
