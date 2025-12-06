@@ -72,7 +72,11 @@ const Dashboard = () => {
               Plane euer nächstes Team-Event.
             </h2>
             <p className="text-muted-foreground mb-6">
-              Plane ein neues Team-Event, teile den (QR-)Code oder stimme bei bestehenden Events ab.
+              Teile den (QR-)Code oder stimme bei bestehenden Events ab.
+              <br />
+              <span className="text-sm opacity-80 mt-2 block">
+                Neue Team-Events kannst du rechts unter <em>Deine Events</em> anlegen.
+              </span>
             </p>
             {deptCode && (
               <div className="flex items-center gap-2 p-3 bg-secondary rounded-xl mb-4">

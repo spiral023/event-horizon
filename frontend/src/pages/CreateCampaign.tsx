@@ -80,7 +80,7 @@ const CreateCampaign = () => {
       const campaign = await createCampaign({
         name: name.trim() || 'Neues Team Event',
         dept_code: deptCode,
-        target_date_range: targetDateRange.trim() || 'Demnaechst',
+        target_date_range: targetDateRange.trim() || 'Demnächst',
         total_budget_needed: Math.max(totalBudget, 0),
         company_budget_available: Math.max(Math.min(companyBudget, totalBudget), 0),
         budget_per_participant: budgetMode === 'perParticipant' ? budgetPerParticipant : undefined,
@@ -136,7 +136,7 @@ const CreateCampaign = () => {
                 Event anlegen
               </CardTitle>
               <CardDescription>
-                Name, Zeitraum und Budget festlegen. Wir fuellen dir passende Optionen automatisch auf.
+                Name, Zeitraum und Budget festlegen. Wir füllen dir passende Optionen automatisch auf.
               </CardDescription>
             </CardHeader>
             <CardContent>
