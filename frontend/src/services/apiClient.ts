@@ -345,16 +345,19 @@ const getDefaultAnalytics = (): TeamAnalytics => ({
 const safeGetEventOptions = async (region?: RegionCode) => {
   try {
     const query = region ? `?region=${encodeURIComponent(region)}` : '';
-    return await request<EventOption[]>(`/event-options${query}`);
-  } catch {
+    const result = await request<EventOption[]>(`/event-options${query}`);
+    return result || []; // Ensure it's an array even if request somehow returns null/undefined
+  } catch (error) {
+    console.error("Failed to fetch event options from API:", error); // Added specific logging
     return [];
   }
 };
 
 const fallbackEventsForRegion = (region?: RegionCode) => {
-  if (!region) return fallbackEventOptions;
+  const options = fallbackEventOptions || [];
+  if (!region) return options;
   const normalized = region.toLowerCase();
-  return fallbackEventOptions.filter((event) => event.location_region.toLowerCase() === normalized);
+  return options.filter((event) => event.location_region.toLowerCase() === normalized);
 };
 
 const getSeasonFromDate = (dateStr: string): 'summer' | 'winter' | 'all_year' => {
