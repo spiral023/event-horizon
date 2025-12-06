@@ -17,13 +17,11 @@ import { useAppStore } from '@/store/appStore';
 
 type RegionValue = EventOption['location_region'];
 
-
-
 const regionOptions: { value: RegionValue; label: string }[] = [
-  { value: 'AT', label: 'Austria (Standard)' },
-  { value: 'Tirol', label: 'Tirol & Berge' },
-  { value: 'Stmk', label: 'Steiermark' },
+  { value: 'OOE', label: 'Oberösterreich' },
+  { value: 'Tirol', label: 'Tirol' },
   { value: 'Sbg', label: 'Salzburg' },
+  { value: 'Stmk', label: 'Steiermark' },
   { value: 'Ktn', label: 'Kärnten' },
 ];
 
@@ -242,7 +240,7 @@ const CreateCampaign = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Regionale Inspiration</Label>
+                  <Label>Event Location</Label>
                   <Select value={region} onValueChange={setRegion}>
                     <SelectTrigger>
                       <SelectValue placeholder="Region waehlen" />

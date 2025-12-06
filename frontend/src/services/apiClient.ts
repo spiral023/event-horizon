@@ -22,7 +22,7 @@ const fallbackEventOptions: EventOption[] = [
     title: 'Kartbahn Leonding',
     category: 'Action',
     tags: ['indoor', 'competitive', 'loud', 'adrenalin'],
-    location_region: 'AT',
+    location_region: 'OOE',
     est_price_pp: 45,
     min_participants: 6,
     accessibility_flags: [],
@@ -204,7 +204,7 @@ const fallbackEventOptions: EventOption[] = [
             title: 'Überraschungsevent',
     category: 'Action',
     tags: ['mystery', 'surprise', 'adventure'],
-    location_region: 'AT',
+    location_region: 'OOE',
     est_price_pp: 50,
     accessibility_flags: [],
     weather_dependent: false,
@@ -216,7 +216,7 @@ const fallbackEventOptions: EventOption[] = [
     title: 'Escape Room Challenge',
     category: 'Action',
     tags: ['teamwork', 'indoor', 'puzzle', 'exciting'],
-    location_region: 'AT',
+    location_region: 'OOE',
     est_price_pp: 30,
     min_participants: 4,
     accessibility_flags: ['wheelchair'],
@@ -360,8 +360,7 @@ const safeGetEventOptions = async (region?: RegionCode) => {
 const fallbackEventsForRegion = (region?: RegionCode) => {
   if (!region) return fallbackEventOptions;
   const normalized = region.toLowerCase();
-  const filtered = fallbackEventOptions.filter((event) => event.location_region.toLowerCase() === normalized);
-  return filtered.length ? filtered : fallbackEventOptions;
+  return fallbackEventOptions.filter((event) => event.location_region.toLowerCase() === normalized);
 };
 
 const resolveEventOptions = async (region?: RegionCode) => {
