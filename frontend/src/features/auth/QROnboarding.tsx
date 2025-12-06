@@ -25,10 +25,25 @@ export const QROnboarding = ({ mode }: QROnboardingProps) => {
   const { setDeptCode, setUser, deptCode } = useAppStore();
 
   const generatedCode = deptCode || 'TEAM-' + generateId().slice(0, 6).toUpperCase();
-  const qrValue = `teamvote://join/${generatedCode}`;
+  const appOrigin =
+    typeof window !== 'undefined' && window.location.origin
+      ? window.location.origin
+      : 'https://event-horizon.sp23.online';
+  const qrValue = `${appOrigin}/qr-scan?code=${generatedCode}`;
 
   const normalizeDeptCode = (code: string) => {
-    const upper = code.trim().toUpperCase();
+    const trimmed = code.trim();
+    // Try parsing full URLs (e.g., https://.../qr-scan?code=IN-1234)
+    try {
+      const url = new URL(trimmed);
+      const paramCode = url.searchParams.get('code');
+      if (paramCode) {
+        return paramCode.toUpperCase();
+      }
+    } catch {
+      /* not a URL */
+    }
+    const upper = trimmed.toUpperCase();
     if (upper.includes('TEAMVOTE://JOIN/')) {
       return upper.split('TEAMVOTE://JOIN/')[1] || upper;
     }
