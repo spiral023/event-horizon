@@ -1,44 +1,44 @@
 services:
-api:
-  build: ./backend
-  env_file:
-    - ./backend/.env
-  volumes:
-    - ./backend/data:/app/data
-  restart: unless-stopped
-  networks:
-    - traefik
-  labels:
-    - "traefik.enable=true"
+  api:
+    build: ./backend
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend/data:/app/data
+    restart: unless-stopped
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
 
-    # Router
-    - "traefik.http.routers.eventhorizon-api.rule=Host(`event-horizon-api.sp23.online`)"
-    - "traefik.http.routers.eventhorizon-api.entrypoints=websecure"
-    - "traefik.http.routers.eventhorizon-api.tls=true"
-    - "traefik.http.routers.eventhorizon-api.tls.certresolver=le"
+      # Router
+      - "traefik.http.routers.eventhorizon-api.rule=Host(`event-horizon-api.sp23.online`)"
+      - "traefik.http.routers.eventhorizon-api.entrypoints=websecure"
+      - "traefik.http.routers.eventhorizon-api.tls=true"
+      - "traefik.http.routers.eventhorizon-api.tls.certresolver=le"
 
-    # Router -> Service
-    - "traefik.http.routers.eventhorizon-api.service=eventhorizon-api"
+      # Router -> Service
+      - "traefik.http.routers.eventhorizon-api.service=eventhorizon-api"
 
-    # Service
-    - "traefik.http.services.eventhorizon-api.loadbalancer.server.port=8000"
+      # Service
+      - "traefik.http.services.eventhorizon-api.loadbalancer.server.port=8000"
 
-web:
-  build:
-    context: ./frontend
-    args:
-      VITE_API_URL: https://event-horizon-api.sp23.online/api
-  restart: unless-stopped
-  networks:
-    - traefik
-  labels:
-    - "traefik.enable=true"
-    - "traefik.http.routers.eventhorizon-web.rule=Host(`event-horizon.sp23.online`)"
-    - "traefik.http.routers.eventhorizon-web.entrypoints=websecure"
-    - "traefik.http.routers.eventhorizon-web.tls=true"
-    - "traefik.http.routers.eventhorizon-web.tls.certresolver=le"
-    - "traefik.http.routers.eventhorizon-web.service=eventhorizon-web"
-    - "traefik.http.services.eventhorizon-web.loadbalancer.server.port=80"
+  web:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: https://event-horizon-api.sp23.online/api
+    restart: unless-stopped
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.eventhorizon-web.rule=Host(`event-horizon.sp23.online`)"
+      - "traefik.http.routers.eventhorizon-web.entrypoints=websecure"
+      - "traefik.http.routers.eventhorizon-web.tls=true"
+      - "traefik.http.routers.eventhorizon-web.tls.certresolver=le"
+      - "traefik.http.routers.eventhorizon-web.service=eventhorizon-web"
+      - "traefik.http.services.eventhorizon-web.loadbalancer.server.port=80"
 
 networks:
   traefik:
