@@ -373,7 +373,7 @@ const resolveEventOptions = async (region?: RegionCode) => {
   const merged =
     fromApi.length >= minCount
       ? fromApi
-      : dedupeEventOptions([...fromApi, ...fallback]).slice(0, Math.max(minCount, fromApi.length));
+      : dedupeEventOptions([...fromApi, ...fallback]);
 
   return { options: merged, source: fromApi.length ? ('api' as const) : ('fallback' as const) };
 };
@@ -456,7 +456,7 @@ export const getEventOptions = async (region: RegionCode): Promise<EventOption[]
   const merged =
     fromApi.length >= minCount
       ? fromApi
-      : dedupeEventOptions([...fromApi, ...fallback]).slice(0, Math.max(minCount, fromApi.length));
+      : dedupeEventOptions([...fromApi, ...fallback]);
   return merged;
 };
 
