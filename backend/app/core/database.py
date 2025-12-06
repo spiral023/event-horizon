@@ -36,6 +36,56 @@ def seed_event_options(session: Session) -> None:
     )  # local import to avoid circular deps
 
     seeds_by_region = {
+        "OOE": [
+            dict(
+                title="Kartbahn Leonding",
+                category=EventCategory.action,
+                tags=["indoor", "competitive", "loud", "adrenalin"],
+                location_region="OOE",
+                est_price_pp=45,
+                min_participants=6,
+                accessibility_flags=[],
+                weather_dependent=False,
+                image_url="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600",
+                description="Rasante Rennen auf der Indoor-Kartbahn mit Profi-Karts und Zeitmessung.",
+            ),
+            dict(
+                title="Escape Room Challenge Linz",
+                category=EventCategory.action,
+                tags=["teamwork", "indoor", "puzzle"],
+                location_region="OOE",
+                est_price_pp=30,
+                min_participants=4,
+                accessibility_flags=["wheelchair"],
+                weather_dependent=False,
+                image_url="https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=600",
+                description="Knifflige Rätsel lösen und gemeinsam aus dem Raum entkommen.",
+            ),
+            dict(
+                title="Most-Degustation",
+                category=EventCategory.food,
+                tags=["outdoor", "culture", "relaxed"],
+                location_region="OOE",
+                est_price_pp=25,
+                min_participants=6,
+                accessibility_flags=[],
+                weather_dependent=True,
+                image_url="https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=600",
+                description="Traditionelle Mostverkostung mit Jause im Mostviertel.",
+            ),
+             dict(
+                title="Donauschifffahrt Schlögener Schlinge",
+                category=EventCategory.relax,
+                tags=["boat", "nature", "view"],
+                location_region="OOE",
+                est_price_pp=35,
+                min_participants=10,
+                accessibility_flags=["wheelchair"],
+                weather_dependent=True,
+                image_url="https://images.unsplash.com/photo-1511497584788-876760111969?w=600",
+                description="Entspannte Schifffahrt durch das Naturwunder Schlögener Schlinge.",
+            ),
+        ],
         "Tirol": [
             dict(
                 title="Alpen Co-Working Innsbruck",
