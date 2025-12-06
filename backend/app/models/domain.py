@@ -45,10 +45,7 @@ class EventCategory(str, Enum):
     party = "Party"
 
 
-class EventOption(EventOptionBase, table=True):
-    __tablename__ = "event_options"
-    id: Optional[str] = Field(default=None, primary_key=True)
-    season: str = Field(default="all_year")  # Explicit field for table model just in case, though inherited
+class EventOptionBase(SQLModel):
     title: str
     category: EventCategory
     tags: List[str] = Field(default_factory=list, sa_column=Column(JSON))
@@ -60,6 +57,12 @@ class EventOption(EventOptionBase, table=True):
     image_url: Optional[str] = None
     description: Optional[str] = None
     is_mystery: bool = False
+    season: str = Field(default="all_year")
+
+
+class EventOption(EventOptionBase, table=True):
+    __tablename__ = "event_options"
+    id: Optional[str] = Field(default=None, primary_key=True)
 
 
 class CampaignEventOption(SQLModel, table=True):
