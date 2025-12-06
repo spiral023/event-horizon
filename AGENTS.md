@@ -2,7 +2,7 @@
 
 ## Overview
 - TeamVote is a Vite/React/TypeScript single-page app for planning team events with voting, budgeting, scheduling, and simple analytics. All data is mocked and stored in the browser (no backend).
-- German copy is used throughout; several strings contain mojibake from broken encoding—be careful when editing text.
+- German copy is used throughout; several strings contain mojibake from broken encoding—be careful when editing text. Keep GUI/text in German and save files as UTF-8.
 - React Query is set up but current data functions are simple async mocks.
 
 ## Run & Tooling
