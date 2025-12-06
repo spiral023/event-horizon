@@ -17,7 +17,7 @@ interface AppState {
   setUser: (user: UserProfile) => void;
   setCurrentCampaign: (id: string) => void;
   addVote: (vote: Vote) => void;
-  useSuperLike: () => void;
+  markSuperLikeUsed: () => void;
   resetVoting: () => void;
   logout: () => void;
 }
@@ -42,7 +42,7 @@ export const useAppStore = create<AppState>()(
         superLikeUsed: vote.is_super_like ? true : state.superLikeUsed,
       })),
       
-      useSuperLike: () => set({ superLikeUsed: true }),
+      markSuperLikeUsed: () => set({ superLikeUsed: true }),
       
       resetVoting: () => set({ votes: [], superLikeUsed: false }),
       

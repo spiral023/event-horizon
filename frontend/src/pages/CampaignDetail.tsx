@@ -11,7 +11,7 @@ import { DateGrid } from '@/features/scheduling/DateGrid';
 import { TeamMeter, PersonaSummary } from '@/features/analytics/TeamAnalytics';
 import { getCampaign, submitContribution, getTeamAnalytics, getFundingPercentage, submitAvailability } from '@/services/apiClient';
 import { useAppStore } from '@/store/appStore';
-import type { Campaign, TeamAnalytics } from '@/types/domain';
+import type { Campaign, TeamAnalytics, Availability } from '@/types/domain';
 import { toast } from 'sonner';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
@@ -62,7 +62,7 @@ const CampaignDetail = () => {
     }
   };
 
-  const handleAvailability = async (availability: any) => {
+  const handleAvailability = async (availability: Availability[]) => {
     if (!id) return;
     try {
       await submitAvailability(id, availability);

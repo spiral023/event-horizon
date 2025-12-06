@@ -32,7 +32,7 @@ export const TinderDeck = ({ events, onVotesComplete }: TinderDeckProps) => {
   const [votes, setVotes] = useState<Vote[]>([]);
   const [direction, setDirection] = useState<'left' | 'right' | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
-  const { superLikeUsed, useSuperLike } = useAppStore();
+  const { superLikeUsed, markSuperLikeUsed } = useAppStore();
 
   const currentEvent = events[currentIndex];
   const progress = ((currentIndex) / events.length) * 100;
@@ -50,7 +50,7 @@ export const TinderDeck = ({ events, onVotesComplete }: TinderDeckProps) => {
     setDirection(liked ? 'right' : 'left');
 
     if (isSuperLike) {
-      useSuperLike();
+      markSuperLikeUsed();
       confetti({
         particleCount: 100,
         spread: 70,

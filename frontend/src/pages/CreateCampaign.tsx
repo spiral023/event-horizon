@@ -37,6 +37,13 @@ const CreateCampaign = () => {
 
   const [name, setName] = useState(() => `Team Event ${new Date().getFullYear()}`);
   const [targetDateRange, setTargetDateRange] = useState('');
+  
+  // Internal state for multi-selection tabs
+  const [selectedMonths, setSelectedMonths] = useState<string[]>([]);
+  const [selectedSeasons, setSelectedSeasons] = useState<string[]>([]);
+  const [kwStart, setKwStart] = useState('');
+  const [kwEnd, setKwEnd] = useState('');
+
   const [budgetMode, setBudgetMode] = useState<'total' | 'perParticipant'>('total');
   const [totalBudgetInput, setTotalBudgetInput] = useState(2000);
   const [companyBudget, setCompanyBudget] = useState(1000);
@@ -50,6 +57,51 @@ const CreateCampaign = () => {
       navigate('/');
     }
   }, [deptCode, navigate]);
+
+  // Season Selection Logic
+  const toggleSeason = (season: string) => {
+    const year = new Date().getFullYear();
+    const fullSeason = `${season} ${year}`;
+    
+    setSelectedSeasons(prev => {
+      const newSelection = prev.includes(fullSeason)
+        ? prev.filter(s => s !== fullSeason)
+        : [...prev, fullSeason];
+      
+      setTargetDateRange(newSelection.join(', '));
+      return newSelection;
+    });
+  };
+
+  // Month Selection Logic
+  const toggleMonth = (mon: string) => {
+    const year = new Date().getFullYear();
+    const fullMon = `${mon} ${year}`;
+    
+    setSelectedMonths(prev => {
+      const newSelection = prev.includes(fullMon)
+        ? prev.filter(m => m !== fullMon)
+        : [...prev, fullMon];
+      
+      // Sort based on standard calendar order if possible, or just keep insertion order
+      // For simplicity: join with comma
+      const text = newSelection.join(', ');
+      setTargetDateRange(text);
+      return newSelection;
+    });
+  };
+
+  // KW Range Logic
+  useEffect(() => {
+    if (kwStart || kwEnd) {
+      const year = new Date().getFullYear();
+      if (kwStart && kwEnd) {
+        setTargetDateRange(`KW ${kwStart} - ${kwEnd} (${year})`);
+      } else if (kwStart) {
+        setTargetDateRange(`KW ${kwStart} (${year})`);
+      }
+    }
+  }, [kwStart, kwEnd]);
 
   const totalBudget = useMemo(() => {
     if (budgetMode === 'perParticipant') {
@@ -111,7 +163,7 @@ const CreateCampaign = () => {
               </div>
             </Link>
             <div>
-              <p className="text-xs text-muted-foreground">Dept: {deptCode || '--'}</p>
+              <p className="text-xs text-muted-foreground">Raum: {deptCode || '--'}</p>
               <h1 className="font-display font-bold leading-tight">Neues Team-Event</h1>
             </div>
           </div>
@@ -164,12 +216,13 @@ const CreateCampaign = () => {
                         {['Frühling', 'Sommer', 'Herbst', 'Winter'].map((season) => {
                            const year = new Date().getFullYear();
                            const val = `${season} ${year}`;
+                           const isSelected = selectedSeasons.includes(val);
                            return (
                              <Button
                                key={season}
                                type="button"
-                               variant={targetDateRange === val ? 'default' : 'outline'}
-                               onClick={() => setTargetDateRange(val)}
+                               variant={isSelected ? 'default' : 'outline'}
+                               onClick={() => toggleSeason(season)}
                                className="justify-start"
                              >
                                {season}
@@ -186,37 +239,55 @@ const CreateCampaign = () => {
                       <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                         {['Jän', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'].map((mon) => {
                            const year = new Date().getFullYear();
-                           const val = `${mon} ${year}`;
+                           const fullMon = `${mon} ${year}`;
+                           const isSelected = selectedMonths.includes(fullMon);
                            return (
                              <Button
                                key={mon}
                                type="button"
                                size="sm"
-                               variant={targetDateRange === val ? 'default' : 'outline'}
-                               onClick={() => setTargetDateRange(val)}
+                               variant={isSelected ? 'default' : 'outline'}
+                               onClick={() => toggleMonth(mon)}
                              >
                                {mon}
                              </Button>
                            );
                         })}
                       </div>
+                      <p className="text-xs text-muted-foreground">
+                        Wähle mehrere Monate für eine größere Auswahl.
+                      </p>
                     </TabsContent>
 
                     <TabsContent value="week" className="pt-2 space-y-3">
-                      <div className="flex items-center gap-4">
-                        <Input
-                           type="number"
-                           min={1}
-                           max={52}
-                           placeholder="KW"
-                           onChange={(e) => {
-                             const kw = e.target.value;
-                             if(kw) setTargetDateRange(`KW ${kw} ${new Date().getFullYear()}`);
-                           }}
-                        />
-                        <div className="text-sm font-medium whitespace-nowrap">
-                          {targetDateRange.startsWith('KW') ? targetDateRange : `KW -- ${new Date().getFullYear()}`}
+                      <div className="flex items-center gap-2">
+                        <div className="grid grid-cols-2 gap-2 w-full">
+                          <div className="space-y-1">
+                            <Label className="text-xs text-muted-foreground">Von KW</Label>
+                            <Input
+                              type="number"
+                              min={1}
+                              max={52}
+                              placeholder="Start"
+                              value={kwStart}
+                              onChange={(e) => setKwStart(e.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs text-muted-foreground">Bis KW</Label>
+                            <Input
+                              type="number"
+                              min={1}
+                              max={52}
+                              placeholder="Ende"
+                              value={kwEnd}
+                              onChange={(e) => setKwEnd(e.target.value)}
+                            />
+                          </div>
                         </div>
+                      </div>
+                      <div className="text-sm font-medium text-muted-foreground">
+                        {targetDateRange.startsWith('KW') ? targetDateRange : 'Zeitraum festlegen...'}
                       </div>
                     </TabsContent>
 
@@ -231,7 +302,7 @@ const CreateCampaign = () => {
                   </Tabs>
                 </div>
 
-                <Tabs value={budgetMode} onValueChange={(value) => setBudgetMode(value as any)} className="w-full">
+                <Tabs value={budgetMode} onValueChange={(value) => setBudgetMode(value as 'total' | 'perParticipant')} className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="total">Gesamt</TabsTrigger>
                     <TabsTrigger value="perParticipant">Pro Teilnehmer</TabsTrigger>
