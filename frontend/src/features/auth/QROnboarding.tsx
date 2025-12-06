@@ -1,14 +1,15 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { QRCodeSVG } from 'qrcode.react';
-import { Scan, CheckCircle, Copy, Share2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAppStore } from '@/store/appStore';
-import { generateId } from '@/utils/storage';
-import { toast } from 'sonner';
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { motion } from "framer-motion";
+import { QRCodeSVG } from "qrcode.react";
+import { QrScanner } from "@yudiel/react-qr-scanner";
+import { Scan, CheckCircle, Copy, Share2, CameraOff } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAppStore } from "@/store/appStore";
+import { generateId } from "@/utils/storage";
+import { toast } from "sonner";
 
 interface QROnboardingProps {
   mode: 'create' | 'scan';
@@ -18,43 +19,78 @@ export const QROnboarding = ({ mode }: QROnboardingProps) => {
   const [token, setToken] = useState('');
   const [scanned, setScanned] = useState(false);
   const [name, setName] = useState('');
+  const [cameraSupported, setCameraSupported] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { setDeptCode, setUser, deptCode } = useAppStore();
 
   const generatedCode = deptCode || 'TEAM-' + generateId().slice(0, 6).toUpperCase();
   const qrValue = `teamvote://join/${generatedCode}`;
 
+  const parsedDeepLink = useMemo(() => {
+    const code = token || searchParams.get('code') || '';
+    if (!code) return null;
+    if (code.includes('teamvote://join/')) {
+      return code.split('teamvote://join/')[1]?.toUpperCase();
+    }
+    if (code.includes('/')) {
+      return code.split('/').pop()?.toUpperCase();
+    }
+    return code.toUpperCase();
+  }, [token, searchParams]);
+
+  const joinWithCode = (code: string) => {
+    const normalized = code.toUpperCase();
+    setDeptCode(normalized);
+    setUser({
+      id: generateId(),
+      name: name || 'Team Member',
+      dept_code: normalized,
+      hobbies: [],
+      history: { liked_categories: [] },
+      super_likes_remaining: 1,
+    });
+    navigate('/dashboard');
+  };
+
   const handleScan = () => {
     // Simulate QR scan
     setScanned(true);
     setTimeout(() => {
-      setDeptCode(generatedCode);
-      setUser({
-        id: generateId(),
-        name: name || 'Team Member',
-        dept_code: generatedCode,
-        hobbies: [],
-        history: { liked_categories: [] },
-        super_likes_remaining: 1,
-      });
-      navigate('/dashboard');
+      joinWithCode(generatedCode);
     }, 1500);
   };
 
   const handleTokenSubmit = () => {
-    if (token.length >= 4) {
-      setDeptCode(token.toUpperCase());
-      setUser({
-        id: generateId(),
-        name: name || 'Team Member',
-        dept_code: token.toUpperCase(),
-        hobbies: [],
-        history: { liked_categories: [] },
-        super_likes_remaining: 1,
-      });
-      navigate('/dashboard');
+    const code = parsedDeepLink;
+    if (code && code.length >= 4) {
+      joinWithCode(code);
     }
   };
+
+  // Auto-join via ?code=TEAM-XXXX
+  useEffect(() => {
+    const code = searchParams.get('code');
+    if (code && code.length >= 4) {
+      setToken(code);
+      setTimeout(() => {
+        const parsed = code.includes('teamvote://join/')
+          ? code.split('teamvote://join/')[1]?.toUpperCase()
+          : code.toUpperCase();
+        if (parsed) {
+          joinWithCode(parsed);
+        }
+      }, 100);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  // Check camera support
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && navigator.mediaDevices?.getUserMedia) {
+      setCameraSupported(true);
+    }
+  }, []);
 
   const copyCode = () => {
     navigator.clipboard.writeText(generatedCode);
@@ -151,19 +187,46 @@ export const QROnboarding = ({ mode }: QROnboardingProps) => {
                 />
               </div>
 
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="aspect-square max-h-64 mx-auto bg-secondary/50 rounded-2xl border-2 border-dashed border-border flex items-center justify-center cursor-pointer"
-                onClick={handleScan}
-              >
-                <div className="text-center p-6">
-                  <Scan className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">
-                    Tippe hier, um den QR-Code zu scannen
-                  </p>
+              {cameraSupported ? (
+                <div className="rounded-2xl overflow-hidden border border-border bg-secondary/30">
+                  <QrScanner
+                    constraints={{ facingMode: 'environment' }}
+                    containerStyle={{ width: '100%', height: '260px' }}
+                    videoStyle={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    onDecode={(result) => {
+                      if (result) {
+                        setScanned(true);
+                        setToken(result);
+                        joinWithCode(result);
+                      }
+                    }}
+                    onError={(error) => {
+                      console.error('QR scan error', error);
+                      toast.error('Kamera/Scan fehlgeschlagen. Bitte Code manuell eingeben.');
+                    }}
+                  />
                 </div>
-              </motion.div>
+              ) : (
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="aspect-square max-h-64 mx-auto bg-secondary/50 rounded-2xl border-2 border-dashed border-border flex items-center justify-center"
+                  onClick={handleScan}
+                >
+                  <div className="text-center p-6">
+                    <Scan className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">
+                      Tippe hier, um den QR-Code zu scannen
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Falls deine Kamera blockiert ist: Code unten manuell einfügen.
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Deep-Link: teamvote://join/TEAM-XXXX
+                    </p>
+                  </div>
+                </motion.div>
+              )}
 
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
@@ -185,6 +248,13 @@ export const QROnboarding = ({ mode }: QROnboardingProps) => {
                   Beitreten
                 </Button>
               </div>
+
+              {!cameraSupported && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <CameraOff className="w-4 h-4" />
+                  Kamera-Support erfordert https oder localhost. Nutze den Code/Link oben.
+                </div>
+              )}
             </>
           ) : (
             <motion.div

@@ -18,6 +18,7 @@ def add_contribution(session: Session, campaign: Campaign, contribution: Private
     contributions = list(session.exec(select(PrivateContribution).where(PrivateContribution.campaign_id == campaign.id).order_by(PrivateContribution.created_at)).all())
     total_before = get_total_funded(campaign, contributions[:-1])
     total_after = get_total_funded(campaign, contributions)
+    percent_after = (total_after / campaign.total_budget_needed) * 100 if campaign.total_budget_needed else 0
 
     # Badges
     if contributions:
@@ -35,7 +36,8 @@ def add_contribution(session: Session, campaign: Campaign, contribution: Private
     # Stretch goals
     goals = list(session.exec(select(StretchGoal).where(StretchGoal.campaign_id == campaign.id)).all())
     for goal in goals:
-        goal.unlocked = total_after >= goal.amount_threshold
+        # amount_threshold wird als Prozentwert interpretiert (z.B. 100 = 100%)
+        goal.unlocked = percent_after >= goal.amount_threshold
         session.add(goal)
 
     session.add_all(contributions)
