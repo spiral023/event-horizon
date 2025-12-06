@@ -27,20 +27,29 @@ export const QROnboarding = ({ mode }: QROnboardingProps) => {
   const generatedCode = deptCode || 'TEAM-' + generateId().slice(0, 6).toUpperCase();
   const qrValue = `teamvote://join/${generatedCode}`;
 
+  const normalizeDeptCode = (code: string) => {
+    const upper = code.trim().toUpperCase();
+    if (upper.includes('TEAMVOTE://JOIN/')) {
+      return upper.split('TEAMVOTE://JOIN/')[1] || upper;
+    }
+    if (upper.startsWith('TEAMVOTE://')) {
+      return upper.replace('TEAMVOTE://', '');
+    }
+    if (upper.includes('/')) {
+      const parts = upper.split('/');
+      return parts[parts.length - 1] || upper;
+    }
+    return upper;
+  };
+
   const parsedDeepLink = useMemo(() => {
     const code = token || searchParams.get('code') || '';
     if (!code) return null;
-    if (code.includes('teamvote://join/')) {
-      return code.split('teamvote://join/')[1]?.toUpperCase();
-    }
-    if (code.includes('/')) {
-      return code.split('/').pop()?.toUpperCase();
-    }
-    return code.toUpperCase();
+    return normalizeDeptCode(code);
   }, [token, searchParams]);
 
   const joinWithCode = (code: string) => {
-    const normalized = code.toUpperCase();
+    const normalized = normalizeDeptCode(code);
     setDeptCode(normalized);
     setUser({
       id: generateId(),
@@ -74,9 +83,7 @@ export const QROnboarding = ({ mode }: QROnboardingProps) => {
     if (code && code.length >= 4) {
       setToken(code);
       setTimeout(() => {
-        const parsed = code.includes('teamvote://join/')
-          ? code.split('teamvote://join/')[1]?.toUpperCase()
-          : code.toUpperCase();
+        const parsed = normalizeDeptCode(code);
         if (parsed) {
           joinWithCode(parsed);
         }
@@ -196,8 +203,9 @@ export const QROnboarding = ({ mode }: QROnboardingProps) => {
                     onDecode={(result) => {
                       if (result) {
                         setScanned(true);
-                        setToken(result);
-                        joinWithCode(result);
+                        const normalized = normalizeDeptCode(result);
+                        setToken(normalized);
+                        joinWithCode(normalized);
                       }
                     }}
                     onError={(error) => {
