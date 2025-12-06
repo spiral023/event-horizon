@@ -62,6 +62,11 @@ const Voting = () => {
     );
   }
 
+  const uniqueEvents = campaign.event_options.reduce<EventOption[]>((acc, evt) => {
+    if (!acc.find((e) => e.id === evt.id)) acc.push(evt);
+    return acc;
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
@@ -92,7 +97,7 @@ const Voting = () => {
           </p>
         </motion.div>
 
-        <TinderDeck events={campaign.event_options} onVotesComplete={handleVotesComplete} />
+        <TinderDeck events={uniqueEvents} onVotesComplete={handleVotesComplete} />
       </main>
     </div>
   );

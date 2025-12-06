@@ -96,6 +96,110 @@ const fallbackEventOptions: EventOption[] = [
     description: 'Weinverkostung und Kellerführung in einem der schönsten Weingebiete Österreichs.',
   },
   {
+    id: 'evt-8',
+    title: 'Genusstour Graz',
+    category: 'Food',
+    tags: ['urban', 'food', 'walking'],
+    location_region: 'Stmk',
+    est_price_pp: 55,
+    min_participants: 4,
+    accessibility_flags: ['wheelchair'],
+    weather_dependent: false,
+    image_url: 'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=600',
+    description: 'Kulinarische Stadtführung durch Graz mit Verkostungen.',
+  },
+  {
+    id: 'evt-9',
+    title: 'Weinwandern Südsteiermark',
+    category: 'Relax',
+    tags: ['outdoor', 'wine', 'nature'],
+    location_region: 'Stmk',
+    est_price_pp: 60,
+    min_participants: 6,
+    accessibility_flags: [],
+    weather_dependent: true,
+    image_url: 'https://images.unsplash.com/photo-1514369118554-e20d93546b30?w=600',
+    description: 'Weinberge, Jausen und Panoramablicke in der Südsteiermark.',
+  },
+  {
+    id: 'evt-10',
+    title: 'Panorama-Dinner Mönchsberg',
+    category: 'Food',
+    tags: ['elegant', 'view', 'city'],
+    location_region: 'Sbg',
+    est_price_pp: 95,
+    min_participants: 4,
+    accessibility_flags: ['wheelchair'],
+    weather_dependent: false,
+    image_url: 'https://images.unsplash.com/photo-1521017432531-fbd92d768814?w=600',
+    description: 'Privates Dinner mit Stadtblick und regionalem Degustationsmenü.',
+  },
+  {
+    id: 'evt-11',
+    title: 'E-MTB Salzkammergut',
+    category: 'Action',
+    tags: ['outdoor', 'nature', 'fitness'],
+    location_region: 'Sbg',
+    est_price_pp: 70,
+    min_participants: 5,
+    accessibility_flags: [],
+    weather_dependent: true,
+    image_url: 'https://images.unsplash.com/photo-1508974239320-0a029497e820?w=600',
+    description: 'Geführte E-MTB Tour mit See-Stopps und Almjause.',
+  },
+  {
+    id: 'evt-12',
+    title: 'Wörthersee Sunset Cruise',
+    category: 'Relax',
+    tags: ['boat', 'sunset', 'chill'],
+    location_region: 'Ktn',
+    est_price_pp: 65,
+    min_participants: 6,
+    accessibility_flags: [],
+    weather_dependent: true,
+    image_url: 'https://images.unsplash.com/photo-1511497584788-876760111969?w=600',
+    description: 'Afterwork-Bootstour mit Drinks und Musik am Wörthersee.',
+  },
+  {
+    id: 'evt-13',
+    title: 'Pyramidenkogel Team-Challenge',
+    category: 'Action',
+    tags: ['view', 'adventure', 'team'],
+    location_region: 'Ktn',
+    est_price_pp: 45,
+    min_participants: 5,
+    accessibility_flags: [],
+    weather_dependent: true,
+    image_url: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=600',
+    description: 'Aussichtsturm, Flying-Fox und Team-Rallye am Pyramidenkogel.',
+  },
+  {
+    id: 'evt-14',
+    title: 'Alpen Co-Working Innsbruck',
+    category: 'Relax',
+    tags: ['indoor', 'focus', 'team'],
+    location_region: 'Tirol',
+    est_price_pp: 40,
+    min_participants: 4,
+    accessibility_flags: [],
+    weather_dependent: false,
+    image_url: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=600',
+    description: 'Co-Working Tag mit Blick auf die Nordkette, Meetingraum & Kaffee-Flat.',
+  },
+  {
+    id: 'evt-15',
+    title: 'Snow & Fun Stubai',
+    category: 'Action',
+    tags: ['outdoor', 'snow', 'adventure'],
+    location_region: 'Tirol',
+    est_price_pp: 75,
+    min_participants: 6,
+    accessibility_flags: [],
+    weather_dependent: true,
+    image_url: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=600',
+    description: 'Rodeln, Zipline und Glühwein-Stopps im Stubaital.',
+  },
+  {
     id: 'mystery-1',
             title: 'Überraschungsevent',
     category: 'Action',
@@ -145,6 +249,16 @@ const fallbackStretchGoals: StretchGoal[] = [
     icon: '🏨',
   },
 ];
+
+const dedupeEventOptions = (events: EventOption[]) => {
+  const seen = new Set<string>();
+  return events.filter((e) => {
+    const key = e.id || `${e.title}-${e.location_region}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
 
 class ApiError extends Error {
   status?: number;
@@ -246,18 +360,22 @@ const safeGetEventOptions = async (region?: RegionCode) => {
 const fallbackEventsForRegion = (region?: RegionCode) => {
   if (!region) return fallbackEventOptions;
   const normalized = region.toLowerCase();
-  const filtered = fallbackEventOptions.filter(
-    (event) => event.location_region.toLowerCase() === normalized
-  );
+  const filtered = fallbackEventOptions.filter((event) => event.location_region.toLowerCase() === normalized);
   return filtered.length ? filtered : fallbackEventOptions;
 };
 
 const resolveEventOptions = async (region?: RegionCode) => {
   const fromApi = await safeGetEventOptions(region);
-  if (fromApi.length) {
-    return { options: fromApi, source: 'api' as const };
-  }
-  return { options: fallbackEventsForRegion(region), source: 'fallback' as const };
+  const minCount = 3;
+  const fallback = fallbackEventsForRegion(region);
+
+  // Wenn zu wenige aus der API kommen, mit Fallback auffüllen
+  const merged =
+    fromApi.length >= minCount
+      ? fromApi
+      : dedupeEventOptions([...fromApi, ...fallback]).slice(0, Math.max(minCount, fromApi.length));
+
+  return { options: merged, source: fromApi.length ? ('api' as const) : ('fallback' as const) };
 };
 
 export const getCampaigns = async (deptCode: string): Promise<Campaign[]> => {
@@ -312,9 +430,8 @@ export const createCampaign = async (payload: CreateCampaignInput): Promise<Camp
     is_mystery: option.is_mystery,
   });
 
-  const eventOptionPayload = (event_options?.length ? event_options : resolvedEvents.options).map(
-    sanitizeEventOption
-  );
+  const baseEvents = event_options?.length ? event_options : resolvedEvents.options;
+  const eventOptionPayload = dedupeEventOptions(baseEvents).map(sanitizeEventOption);
 
   const body = {
     ...rest,
@@ -333,7 +450,13 @@ export const createCampaign = async (payload: CreateCampaignInput): Promise<Camp
 
 export const getEventOptions = async (region: RegionCode): Promise<EventOption[]> => {
   const fromApi = await safeGetEventOptions(region);
-  return fromApi.length ? fromApi : fallbackEventsForRegion(region);
+  const fallback = fallbackEventsForRegion(region);
+  const minCount = 3;
+  const merged =
+    fromApi.length >= minCount
+      ? fromApi
+      : dedupeEventOptions([...fromApi, ...fallback]).slice(0, Math.max(minCount, fromApi.length));
+  return merged;
 };
 
 export const submitVotes = async (campaignId: string, votes: Vote[]): Promise<ApiMessage> => {
