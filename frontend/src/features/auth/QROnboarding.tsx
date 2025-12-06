@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { QRCodeSVG } from "qrcode.react";
 import { QrScanner } from "@yudiel/react-qr-scanner";
 import { Scan, CheckCircle, Copy, Share2, CameraOff } from "lucide-react";
+import { toBlob } from "html-to-image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +24,7 @@ export const QROnboarding = ({ mode }: QROnboardingProps) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { setDeptCode, setUser, deptCode } = useAppStore();
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const generatedCode = deptCode || 'TEAM-' + generateId().slice(0, 6).toUpperCase();
   const appOrigin =
@@ -94,6 +96,43 @@ export const QROnboarding = ({ mode }: QROnboardingProps) => {
     }
   };
 
+  const handleShare = async () => {
+    if (!cardRef.current) return;
+
+    try {
+      const blob = await toBlob(cardRef.current, {
+        cacheBust: true,
+        backgroundColor: '#ffffff', // Ensure white background for the image
+      });
+
+      if (!blob) {
+        throw new Error('Konnte Bild nicht generieren');
+      }
+
+      const file = new File([blob], `team-code-${generatedCode}.png`, { type: 'image/png' });
+
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: 'Event Horizon Team Code',
+          text: `Tritt meinem Team bei! Code: ${generatedCode}`,
+          files: [file],
+        });
+      } else {
+        // Fallback: Download image
+        const link = document.createElement('a');
+        link.download = `team-code-${generatedCode}.png`;
+        link.href = URL.createObjectURL(blob);
+        link.click();
+        toast.success('Bild heruntergeladen (Teilen nicht unterstützt)');
+      }
+    } catch (err) {
+      console.error('Share failed:', err);
+      // Fallback to text copy if image generation fails
+      copyCode();
+      toast.error('Konnte Bild nicht teilen, Code wurde kopiert.');
+    }
+  };
+
   // Auto-join via ?code=TEAM-XXXX
   useEffect(() => {
     const code = searchParams.get('code');
@@ -129,53 +168,60 @@ export const QROnboarding = ({ mode }: QROnboardingProps) => {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md mx-auto"
       >
-        <Card variant="elevated">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl">QR-Code für dein Team</CardTitle>
-            <CardDescription>
-              Teile diesen Code, damit andere beitreten können
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex justify-center">
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.2 }}
-                className="p-4 bg-background rounded-2xl"
-              >
-                <QRCodeSVG
-                  value={qrValue}
-                  size={200}
-                  level="H"
-                  includeMargin
-                  className="rounded-xl"
-                />
-              </motion.div>
-            </div>
+        <div ref={cardRef} className="bg-background rounded-xl overflow-hidden">
+          <Card variant="elevated" className="border-0 shadow-none sm:border sm:shadow-sm">
+            <CardHeader className="text-center pb-2">
+               <div className="mb-2">
+                <span className="px-3 py-1 text-xs font-semibold tracking-widest text-primary/80 uppercase bg-primary/10 rounded-full">
+                  Event Horizon
+                </span>
+              </div>
+              <CardTitle className="text-2xl">QR-Code für dein Team</CardTitle>
+              <CardDescription>
+                Teile diesen Code, damit andere beitreten können
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex justify-center">
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="p-4 bg-white rounded-2xl shadow-sm border"
+                >
+                  <QRCodeSVG
+                    value={qrValue}
+                    size={200}
+                    level="H"
+                    includeMargin
+                    className="rounded-xl"
+                  />
+                </motion.div>
+              </div>
 
-            <div className="flex items-center gap-2 p-3 bg-secondary rounded-xl">
-              <div className="w-11 shrink-0" aria-hidden="true" />
-              <code className="flex-1 text-center font-mono text-lg font-bold tracking-wider">
-                {generatedCode}
-              </code>
-              <Button variant="ghost" size="icon" onClick={copyCode}>
-                <Copy className="w-4 h-4" />
-              </Button>
-            </div>
-
-            <div className="flex gap-2">
-              <Button variant="outline" className="flex-1" onClick={copyCode}>
-                <Copy className="w-4 h-4" />
-                Kopieren
-              </Button>
-              <Button variant="gradient" className="flex-1">
-                <Share2 className="w-4 h-4" />
-                Teilen
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="flex items-center gap-2 p-3 bg-secondary rounded-xl">
+                <div className="w-11 shrink-0" aria-hidden="true" />
+                <code className="flex-1 text-center font-mono text-lg font-bold tracking-wider">
+                  {generatedCode}
+                </code>
+                <Button variant="ghost" size="icon" onClick={copyCode}>
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        <div className="flex gap-2 mt-6">
+          <Button variant="outline" className="flex-1" onClick={copyCode}>
+            <Copy className="w-4 h-4" />
+            Kopieren
+          </Button>
+          <Button variant="gradient" className="flex-1" onClick={handleShare}>
+            <Share2 className="w-4 h-4" />
+            Teilen
+          </Button>
+        </div>
       </motion.div>
     );
   }
