@@ -11,9 +11,11 @@ import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/components/ui/sonner';
 import { createCampaign } from '@/services/apiClient';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAppStore } from '@/store/appStore';
 
 type RegionValue = EventOption['location_region'];
+
 
 const regionOptions: { value: RegionValue; label: string }[] = [
   { value: 'AT', label: 'Austria (Standard)' },
@@ -35,8 +37,11 @@ const CreateCampaign = () => {
 
   const [name, setName] = useState(() => `Team Event ${new Date().getFullYear()}`);
   const [targetDateRange, setTargetDateRange] = useState('');
-  const [totalBudget, setTotalBudget] = useState(2000);
+  const [budgetMode, setBudgetMode] = useState<'total' | 'perParticipant'>('total');
+  const [totalBudgetInput, setTotalBudgetInput] = useState(2000);
   const [companyBudget, setCompanyBudget] = useState(1000);
+  const [budgetPerParticipant, setBudgetPerParticipant] = useState<number | undefined>(50);
+  const [estimatedParticipants, setEstimatedParticipants] = useState(10);
   const [region, setRegion] = useState<RegionValue>(regionOptions[0].value);
   const [loading, setLoading] = useState(false);
 
@@ -46,13 +51,21 @@ const CreateCampaign = () => {
     }
   }, [deptCode, navigate]);
 
+  const totalBudget = useMemo(() => {
+    if (budgetMode === 'perParticipant') {
+      return (budgetPerParticipant || 0) * estimatedParticipants;
+    }
+    return totalBudgetInput;
+  }, [budgetMode, budgetPerParticipant, estimatedParticipants, totalBudgetInput]);
+
   const fundingProgress = useMemo(() => {
     if (totalBudget <= 0) return 0;
     return Math.min((companyBudget / totalBudget) * 100, 100);
   }, [companyBudget, totalBudget]);
 
   const handlePreset = (preset: (typeof budgetPresets)[number]) => {
-    setTotalBudget(preset.total);
+    setBudgetMode('total');
+    setTotalBudgetInput(preset.total);
     setCompanyBudget(preset.company);
   };
 
@@ -66,8 +79,9 @@ const CreateCampaign = () => {
         name: name.trim() || 'Neues Team Event',
         dept_code: deptCode,
         target_date_range: targetDateRange.trim() || 'Demnaechst',
-        total_budget_needed: Math.max(totalBudget, 500),
+        total_budget_needed: Math.max(totalBudget, 0),
         company_budget_available: Math.max(Math.min(companyBudget, totalBudget), 0),
+        budget_per_participant: budgetMode === 'perParticipant' ? budgetPerParticipant : undefined,
         external_sponsors: 0,
         region,
       });
@@ -140,32 +154,70 @@ const CreateCampaign = () => {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="budget">Gesamtbudget (EUR)</Label>
-                    <Input
-                      id="budget"
-                      type="number"
-                      min={500}
-                      step={50}
-                      value={totalBudget}
-                      onChange={(e) => setTotalBudget(Number(e.target.value) || 0)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="companyBudget">Budget vom Unternehmen</Label>
-                    <Input
-                      id="companyBudget"
-                      type="number"
-                      min={0}
-                      step={50}
-                      value={companyBudget}
-                      onChange={(e) => setCompanyBudget(Number(e.target.value) || 0)}
-                    />
-                  </div>
+                <Tabs value={budgetMode} onValueChange={(value) => setBudgetMode(value as any)} className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="total">Gesamt</TabsTrigger>
+                    <TabsTrigger value="perParticipant">Pro Teilnehmer</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="total" className="pt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="budget">Gesamtbudget (EUR)</Label>
+                      <Input
+                        id="budget"
+                        type="number"
+                        min={0}
+                        step={50}
+                        value={totalBudgetInput}
+                        onChange={(e) => setTotalBudgetInput(Number(e.target.value) || 0)}
+                      />
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="perParticipant" className="pt-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="budgetPerParticipant">Budget p.P. (EUR)</Label>
+                        <Input
+                          id="budgetPerParticipant"
+                          type="number"
+                          min={0}
+                          step={5}
+                          placeholder="z.B. 40"
+                          value={budgetPerParticipant}
+                          onChange={(e) => setBudgetPerParticipant(Number(e.target.value) || undefined)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="estimatedParticipants">Anzahl Teilnehmer</Label>
+                        <Input
+                          id="estimatedParticipants"
+                          type="number"
+                          min={1}
+                          step={1}
+                          value={estimatedParticipants}
+                          onChange={(e) => setEstimatedParticipants(Number(e.target.value) || 1)}
+                        />
+                      </div>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+
+                <div className="space-y-2">
+                  <Label htmlFor="companyBudget">Budget vom Unternehmen</Label>
+                  <Input
+                    id="companyBudget"
+                    type="number"
+                    min={0}
+                    step={50}
+                    value={companyBudget}
+                    onChange={(e) => setCompanyBudget(Number(e.target.value) || 0)}
+                  />
                 </div>
 
                 <div className="space-y-3 rounded-xl border border-border p-4 bg-secondary/30">
+                  <div className="flex items-center justify-between">
+                    <p className="font-semibold">Geschätztes Gesamtbudget</p>
+                    <p className="font-bold text-xl">EUR {Math.round(totalBudget)}</p>
+                  </div>
                   <div className="flex items-center justify-between text-sm text-muted-foreground">
                     <span className="flex items-center gap-2">
                       <PiggyBank className="w-4 h-4" />
@@ -242,5 +294,3 @@ const CreateCampaign = () => {
 };
 
 export default CreateCampaign;
-
-

@@ -32,6 +32,7 @@ class Campaign(SQLModel, table=True):
     status: CampaignStatus = Field(default=CampaignStatus.voting)
     total_budget_needed: float
     company_budget_available: float
+    budget_per_participant: Optional[float] = None
     external_sponsors: float = 0
     winning_event_id: Optional[str] = Field(default=None, foreign_key="eventoption.id")
     created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)

@@ -73,6 +73,7 @@ class CampaignBase(BaseModel):
     status: CampaignStatus = CampaignStatus.voting
     total_budget_needed: float
     company_budget_available: float
+    budget_per_participant: Optional[float] = None
     external_sponsors: float = 0
     winning_event_id: Optional[str] = None
 

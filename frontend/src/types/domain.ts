@@ -45,6 +45,7 @@ export interface Campaign {
   status: CampaignStatus;
   total_budget_needed: number;
   company_budget_available: number;
+  budget_per_participant?: number;
   external_sponsors: number;
   private_contributions: PrivateContribution[];
   stretch_goals: StretchGoal[];

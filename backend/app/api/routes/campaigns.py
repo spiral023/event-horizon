@@ -63,6 +63,7 @@ def create_campaign(
         status=payload.status,
         total_budget_needed=payload.total_budget_needed,
         company_budget_available=payload.company_budget_available,
+        budget_per_participant=payload.budget_per_participant,
         external_sponsors=payload.external_sponsors,
         winning_event_id=payload.winning_event_id,
     )

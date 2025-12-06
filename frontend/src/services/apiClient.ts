@@ -402,6 +402,7 @@ type CreateCampaignInput = {
   target_date_range: string;
   total_budget_needed: number;
   company_budget_available: number;
+  budget_per_participant?: number;
   external_sponsors?: number;
   status?: Campaign['status'];
   region?: RegionCode;
