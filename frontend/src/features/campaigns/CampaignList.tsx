@@ -33,7 +33,12 @@ export const CampaignList = () => {
       if (!deptCode) return;
       try {
         const data = await getCampaigns(deptCode);
-        setCampaigns(data);
+        const sorted = [...data].sort((a, b) => {
+          const aTime = new Date(a.created_at || '').getTime();
+          const bTime = new Date(b.created_at || '').getTime();
+          return bTime - aTime;
+        });
+        setCampaigns(sorted);
       } catch (error) {
         console.error('Failed to fetch campaigns:', error);
       } finally {

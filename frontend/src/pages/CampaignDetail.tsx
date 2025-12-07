@@ -375,12 +375,20 @@ const CampaignDetail = () => {
               <div className="space-y-4 lg:col-span-7">
                 <Card variant="elevated" className="border border-border/60 shadow-sm">
                   <CardHeader className="pb-3">
-                    <CardTitle>Übersicht</CardTitle>
-                    <CardDescription>
-                      Voting-Status und Deadline für diese Kampagne.
-                    </CardDescription>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                          <Calendar className="w-4 h-4" />
+                          Uebersicht
+                        </span>
+                        <CardTitle className="text-base">Voting & Deadline</CardTitle>
+                      </div>
+                      <CardDescription className="text-xs text-muted-foreground">
+                        Aktueller Stand der Abstimmung
+                      </CardDescription>
+                    </div>
                   </CardHeader>
-                  <CardContent className="space-y-3">
+                  <CardContent className="space-y-4">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Voting-Deadline</span>
                       <span className="font-semibold">
@@ -394,11 +402,16 @@ const CampaignDetail = () => {
                       </span>
                     </div>
                     {votingDeadline && (
-                      <div className="space-y-1">
-                        <Progress value={votingProgress ?? 0} />
-                        <p className="text-xs text-muted-foreground text-right">
-                          {votingProgress ?? 0}% bis zur Deadline
-                        </p>
+                      <div className="space-y-1.5">
+                        <Progress
+                          value={votingProgress ?? 0}
+                          variant={votingClosed ? 'success' : 'gradient'}
+                        />
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>Heute</span>
+                          <span>{votingProgress ?? 0}%</span>
+                          <span>Deadline</span>
+                        </div>
                       </div>
                     )}
                   </CardContent>
