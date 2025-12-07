@@ -34,7 +34,7 @@ class Campaign(SQLModel, table=True):
     company_budget_available: float
     budget_per_participant: Optional[float] = None
     external_sponsors: float = 0
-    winning_event_id: Optional[str] = Field(default=None, foreign_key="eventoption.id")
+    winning_event_id: Optional[str] = Field(default=None, foreign_key="event_options.id")
     created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
 
 
@@ -68,7 +68,7 @@ class EventOption(EventOptionBase, table=True):
 class CampaignEventOption(SQLModel, table=True):
     id: str = Field(default_factory=gen_id, primary_key=True, index=True)
     campaign_id: str = Field(foreign_key="campaign.id", index=True)
-    event_option_id: str = Field(foreign_key="eventoption.id", index=True)
+    event_option_id: str = Field(foreign_key="event_options.id", index=True)
 
 
 class StretchGoal(SQLModel, table=True):
@@ -110,7 +110,7 @@ class UserProfile(SQLModel, table=True):
 class Vote(SQLModel, table=True):
     id: str = Field(default_factory=gen_id, primary_key=True, index=True)
     campaign_id: str = Field(foreign_key="campaign.id", index=True)
-    event_id: str = Field(foreign_key="eventoption.id", index=True)
+    event_id: str = Field(foreign_key="event_options.id", index=True)
     user_id: Optional[str] = Field(default=None, foreign_key="userprofile.id", index=True)
     session_id: Optional[str] = Field(default=None, index=True)
     weight: int = 1
