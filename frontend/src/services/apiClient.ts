@@ -13,242 +13,17 @@ import { storage, generateId } from '@/utils/storage';
 const API_BASE_URL =
   (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') || 'http://localhost:8000/api';
 
-// Keep the existing demo content as fallback to seed the backend if it is empty
-const fallbackEventOptions: EventOption[] = [
-  {
-    id: 'evt-1',
-    title: 'Kartbahn Leonding',
-    category: 'Action',
-    tags: ['indoor', 'competitive', 'loud', 'adrenalin'],
-    location_region: 'OOE',
-    est_price_pp: 45,
-    min_participants: 6,
-    accessibility_flags: [],
-    weather_dependent: false,
-    image_url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600',
-    description: 'Rasante Rennen auf der Indoor-Kartbahn mit Profi-Karts und Zeitmessung.',
-  },
-  {
-    id: 'evt-2',
-    title: 'Haubenrestaurant Steiereck',
-    category: 'Food',
-    tags: ['gourmet', 'elegant', 'indoor'],
-    location_region: 'AT',
-    est_price_pp: 120,
-    min_participants: 4,
-    accessibility_flags: ['vegan', 'wheelchair'],
-    weather_dependent: false,
-    image_url: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600',
-    description: 'Kulinarisches Erlebnis auf h?chstem Niveau mit regionalen Spezialit?ten.',
-  },
-  {
-    id: 'evt-3',
-    title: 'Wellnesstag Aqua Dome',
-    category: 'Relax',
-    tags: ['spa', 'indoor', 'entspannung'],
-    location_region: 'Tirol',
-    est_price_pp: 75,
-    min_participants: 2,
-    accessibility_flags: ['wheelchair', 'pregnant_friendly'],
-    weather_dependent: false,
-    image_url: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600',
-    description: 'Entspannung pur mit Saunalandschaft, Thermalbecken und Massage.',
-  },
-  {
-    id: 'evt-4',
-    title: 'Clubbing im Flex Wien',
-    category: 'Party',
-    tags: ['nightlife', 'music', 'indoor', 'loud'],
-    location_region: 'AT',
-    est_price_pp: 35,
-    min_participants: 8,
-    accessibility_flags: [],
-    weather_dependent: false,
-    image_url: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600',
-    description: 'Legend?re Club-Nacht mit DJ-Sets und VIP-Bereich f?r das Team.',
-  },
-  {
-    id: 'evt-5',
-    title: 'Klettersteig Dachstein',
-    category: 'Action',
-    tags: ['outdoor', 'adventure', 'nature', 'challenging'],
-    location_region: 'Stmk',
-    est_price_pp: 55,
-    min_participants: 4,
-    accessibility_flags: [],
-    weather_dependent: true,
-    image_url: 'https://images.unsplash.com/photo-1522163182402-834f871fd851?w=600',
-    description: 'Alpines Abenteuer mit atemberaubender Aussicht und Nervenkitzel.',
-  },
-  {
-    id: 'evt-6',
-    title: 'Weingut Tour Wachau',
-    category: 'Food',
-    tags: ['wine', 'outdoor', 'culture', 'relaxed'],
-    location_region: 'AT',
-    est_price_pp: 65,
-    min_participants: 6,
-    accessibility_flags: ['wheelchair'],
-    weather_dependent: true,
-    image_url: 'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=600',
-    description: 'Weinverkostung und Kellerf?hrung in einem der sch?nsten Weingebiete ?sterreichs.',
-  },
-  {
-    id: 'evt-8',
-    title: 'Genusstour Graz',
-    category: 'Food',
-    tags: ['urban', 'food', 'walking'],
-    location_region: 'Stmk',
-    est_price_pp: 55,
-    min_participants: 4,
-    accessibility_flags: ['wheelchair'],
-    weather_dependent: false,
-    image_url: 'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=600',
-    description: 'Kulinarische Stadtf?hrung durch Graz mit Verkostungen.',
-  },
-  {
-    id: 'evt-9',
-    title: 'Weinwandern S?dsteiermark',
-    category: 'Relax',
-    tags: ['outdoor', 'wine', 'nature'],
-    location_region: 'Stmk',
-    est_price_pp: 60,
-    min_participants: 6,
-    accessibility_flags: [],
-    weather_dependent: true,
-    image_url: 'https://images.unsplash.com/photo-1514369118554-e20d93546b30?w=600',
-    description: 'Weinberge, Jausen und Panoramablicke in der S?dsteiermark.',
-  },
-  {
-    id: 'evt-10',
-    title: 'Panorama-Dinner M?nchsberg',
-    category: 'Food',
-    tags: ['elegant', 'view', 'city'],
-    location_region: 'Sbg',
-    est_price_pp: 95,
-    min_participants: 4,
-    accessibility_flags: ['wheelchair'],
-    weather_dependent: false,
-    image_url: 'https://images.unsplash.com/photo-1521017432531-fbd92d768814?w=600',
-    description: 'Privates Dinner mit Stadtblick und regionalem Degustationsmen?.',
-  },
-  {
-    id: 'evt-11',
-    title: 'E-MTB Salzkammergut',
-    category: 'Action',
-    tags: ['outdoor', 'nature', 'fitness'],
-    location_region: 'Sbg',
-    est_price_pp: 70,
-    min_participants: 5,
-    accessibility_flags: [],
-    weather_dependent: true,
-    image_url: 'https://images.unsplash.com/photo-1508974239320-0a029497e820?w=600',
-    description: 'Gef?hrte E-MTB Tour mit See-Stopps und Almjause.',
-  },
-  {
-    id: 'evt-12',
-    title: 'W?rthersee Sunset Cruise',
-    category: 'Relax',
-    tags: ['boat', 'sunset', 'chill'],
-    location_region: 'Ktn',
-    est_price_pp: 65,
-    min_participants: 6,
-    accessibility_flags: [],
-    weather_dependent: true,
-    image_url: 'https://images.unsplash.com/photo-1511497584788-876760111969?w=600',
-    description: 'Afterwork-Bootstour mit Drinks und Musik am W?rthersee.',
-  },
-  {
-    id: 'evt-13',
-    title: 'Pyramidenkogel Team-Challenge',
-    category: 'Action',
-    tags: ['view', 'adventure', 'team'],
-    location_region: 'Ktn',
-    est_price_pp: 45,
-    min_participants: 5,
-    accessibility_flags: [],
-    weather_dependent: true,
-    image_url: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=600',
-    description: 'Aussichtsturm, Flying-Fox und Team-Rallye am Pyramidenkogel.',
-  },
-  {
-    id: 'evt-14',
-    title: 'Alpen Co-Working Innsbruck',
-    category: 'Relax',
-    tags: ['indoor', 'focus', 'team'],
-    location_region: 'Tirol',
-    est_price_pp: 40,
-    min_participants: 4,
-    accessibility_flags: [],
-    weather_dependent: false,
-    image_url: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=600',
-    description: 'Co-Working Tag mit Blick auf die Nordkette, Meetingraum & Kaffee-Flat.',
-  },
-  {
-    id: 'evt-15',
-    title: 'Snow & Fun Stubai',
-    category: 'Action',
-    tags: ['outdoor', 'snow', 'adventure'],
-    location_region: 'Tirol',
-    est_price_pp: 75,
-    min_participants: 6,
-    accessibility_flags: [],
-    weather_dependent: true,
-    image_url: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=600',
-    description: 'Rodeln, Zipline und Gl?hwein-Stopps im Stubaital.',
-  },
-  {
-    id: 'mystery-1',
-    title: '?berraschungsevent',
-    category: 'Action',
-    tags: ['mystery', 'surprise', 'adventure'],
-    location_region: 'OOE',
-    est_price_pp: 50,
-    accessibility_flags: [],
-    weather_dependent: false,
-    is_mystery: true,
-    description: 'Kategorie: Action ? Das Team erf?hrt erst am Eventtag, was passiert!',
-  },
-  {
-    id: 'evt-7',
-    title: 'Escape Room Challenge',
-    category: 'Action',
-    tags: ['teamwork', 'indoor', 'puzzle', 'exciting'],
-    location_region: 'OOE',
-    est_price_pp: 30,
-    min_participants: 4,
-    accessibility_flags: ['wheelchair'],
-    weather_dependent: false,
-    image_url: 'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=600',
-    description: 'Knifflige R?tsel l?sen und gemeinsam aus dem Raum entkommen.',
-  },
-];
+type ApiMessage = { message: string }
 
-const fallbackStretchGoals: StretchGoal[] = [
-  {
-    id: 'sg-1',
-    amount_threshold: 100,
-    reward_description: 'Event finanziert! ??',
-    unlocked: false,
-    icon: '??',
-  },
-  {
-    id: 'sg-2',
-    amount_threshold: 110,
-    reward_description: 'Erste Runde Getr?nke geht aufs Haus! ??',
-    unlocked: false,
-    icon: '??',
-  },
-  {
-    id: 'sg-3',
-    amount_threshold: 125,
-    reward_description: 'Upgrade auf 4-Sterne-Hotel! ??',
-    unlocked: false,
-    icon: '??',
-  },
-];
-
-type ApiMessage = { message: string };
+const dedupeEventOptions = (events: EventOption[]) => {
+  const seen = new Set<string>();
+  return events.filter((e) => {
+    const key = e.id || `${e.title}-${e.location_region}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
 
 interface RawContribution {
   id: string;
@@ -377,13 +152,6 @@ const safeGetEventOptions = async (region?: RegionCode) => {
   }
 };
 
-const fallbackEventsForRegion = (region?: RegionCode) => {
-  const options = fallbackEventOptions || [];
-  if (!region) return options;
-  const normalized = region.toLowerCase();
-  return options.filter((event) => event.location_region.toLowerCase() === normalized);
-};
-
 const getSeasonFromDate = (dateStr: string): 'summer' | 'winter' | 'all_year' => {
   if (!dateStr) return 'all_year';
   const lower = dateStr.toLowerCase();
@@ -453,23 +221,18 @@ const getSeasonFromDate = (dateStr: string): 'summer' | 'winter' | 'all_year' =>
 
 const resolveEventOptions = async (region?: RegionCode, season: string = 'all_year') => {
   const fromApi = await safeGetEventOptions(region);
-  const minCount = 3;
-  const fallback = fallbackEventsForRegion(region);
 
   const filterBySeason = (events: EventOption[]) => {
     if (season === 'all_year') return events;
     return events.filter((e) => !e.season || e.season === 'all_year' || e.season === season);
   };
 
-  // Wenn zu wenige aus der API kommen, mit Fallback auffüllen
-  const merged =
-    fromApi.length >= minCount
-      ? fromApi
-      : dedupeEventOptions([...fromApi, ...fallback]);
-  
-  const filtered = filterBySeason(merged);
+  const filtered = filterBySeason(dedupeEventOptions(fromApi));
+  if (!filtered.length) {
+    throw new ApiError('Keine Event-Optionen verfügbar. Bitte später erneut versuchen.', 400);
+  }
 
-  return { options: filtered, source: fromApi.length ? ('api' as const) : ('fallback' as const) };
+  return { options: filtered, source: 'api' as const };
 };
 
 export const getCampaigns = async (deptCode: string): Promise<Campaign[]> => {
@@ -510,7 +273,7 @@ export const createCampaign = async (payload: CreateCampaignInput): Promise<Camp
   
   const season = getSeasonFromDate(payload.target_date_range);
   const resolvedEvents = await resolveEventOptions(region, season);
-  const stretchGoals = stretch_goals && stretch_goals.length ? stretch_goals : fallbackStretchGoals;
+  const stretchGoals = stretch_goals && stretch_goals.length ? stretch_goals : [];
 
   const sanitizeEventOption = (option: EventOption) => ({
     id: option.id,
@@ -548,13 +311,10 @@ export const createCampaign = async (payload: CreateCampaignInput): Promise<Camp
 
 export const getEventOptions = async (region: RegionCode): Promise<EventOption[]> => {
   const fromApi = await safeGetEventOptions(region);
-  const fallback = fallbackEventsForRegion(region);
-  const minCount = 3;
-  const merged =
-    fromApi.length >= minCount
-      ? fromApi
-      : dedupeEventOptions([...fromApi, ...fallback]);
-  return merged;
+  if (!fromApi.length) {
+    throw new ApiError('Keine Event-Optionen verfügbar. Bitte später erneut versuchen.', 400);
+  }
+  return dedupeEventOptions(fromApi);
 };
 
 export const submitVotes = async (campaignId: string, votes: Vote[]): Promise<ApiMessage> => {
