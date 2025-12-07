@@ -571,54 +571,58 @@ const CampaignDetail = () => {
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-border overflow-hidden">
-                  <div className="max-h-[520px] overflow-auto">
-                    <table className="min-w-full text-sm">
-                      <thead className="bg-secondary/40 text-muted-foreground sticky top-0">
-                        <tr className="text-left">
-                          <th className="p-3">Titel</th>
-                          <th className="p-3">Kategorie</th>
-                          <th className="p-3">Region</th>
-                          <th className="p-3 text-right">Preis p.P.</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {activityTabLoading ? (
-                          <tr>
-                            <td colSpan={4} className="p-4 text-center text-xs text-muted-foreground">
-                              Lade Events...
-                            </td>
-                          </tr>
-                        ) : (
-                          activityOptions
-                            .filter((opt) => {
-                              const matchesSearch =
-                                opt.title.toLowerCase().includes(activitySearch.toLowerCase()) ||
-                                opt.tags.join(' ').toLowerCase().includes(activitySearch.toLowerCase()) ||
-                                opt.location_region.toLowerCase().includes(activitySearch.toLowerCase());
-                              const matchesRegion =
-                                activityRegionFilter.length === 0 || activityRegionFilter.includes(opt.location_region);
-                              const matchesCategory =
-                                activityCategoryFilter.length === 0 || activityCategoryFilter.includes(opt.category);
-                              return matchesSearch && matchesRegion && matchesCategory;
-                            })
-                            .map((option) => (
-                              <tr
-                                key={option.id}
-                                className="border-t border-border/60 hover:bg-secondary/30 cursor-pointer"
-                                onClick={() => setSelectedActivity(option)}
-                              >
-                                <td className="p-3 font-medium">{option.title}</td>
-                                <td className="p-3">{option.category}</td>
-                                <td className="p-3">{option.location_region}</td>
-                                <td className="p-3 text-right">EUR {Math.round(option.est_price_pp)}</td>
-                              </tr>
-                            ))
-                        )}
-                      </tbody>
-                    </table>
+                {activityTabLoading ? (
+                  <div className="text-center text-sm text-muted-foreground py-8 rounded-xl border border-border">
+                    Lade Events...
                   </div>
-                </div>
+                ) : (
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {activityOptions
+                      .filter((opt) => {
+                        const term = activitySearch.toLowerCase();
+                        const matchesSearch =
+                          opt.title.toLowerCase().includes(term) ||
+                          opt.tags.join(' ').toLowerCase().includes(term) ||
+                          opt.location_region.toLowerCase().includes(term);
+                        const matchesRegion =
+                          activityRegionFilter.length === 0 || activityRegionFilter.includes(opt.location_region);
+                        const matchesCategory =
+                          activityCategoryFilter.length === 0 || activityCategoryFilter.includes(opt.category);
+                        return matchesSearch && matchesRegion && matchesCategory;
+                      })
+                      .map((option) => (
+                        <Card
+                          key={option.id}
+                          variant="elevated"
+                          className="overflow-hidden hover:border-primary/50 transition-all duration-200 cursor-pointer flex flex-col"
+                          onClick={() => setSelectedActivity(option)}
+                        >
+                          <div
+                            className="h-32 w-full bg-cover bg-center"
+                            style={{
+                              backgroundImage: option.image_url
+                                ? `linear-gradient(rgba(0,0,0,0.15), rgba(0,0,0,0.25)), url(${option.image_url})`
+                                : 'linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)',
+                            }}
+                          />
+                          <CardContent className="p-4 flex flex-col gap-2 flex-1">
+                            <div className="flex items-center justify-between">
+                              <Badge variant="outline">{option.category}</Badge>
+                              <span className="text-xs text-muted-foreground">{option.location_region}</span>
+                            </div>
+                            <h4 className="font-semibold leading-tight line-clamp-2">{option.title}</h4>
+                            <p className="text-xs text-muted-foreground line-clamp-2">
+                              {option.description || 'Keine Beschreibung vorhanden.'}
+                            </p>
+                            <div className="flex items-center justify-between text-sm mt-auto">
+                              <span className="text-muted-foreground">Preis p.P.</span>
+                              <span className="font-semibold">EUR {Math.round(option.est_price_pp)}</span>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
