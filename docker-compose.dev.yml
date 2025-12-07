@@ -1,6 +1,5 @@
 # Docker Compose für lokales Development
 # Usage: docker compose -f docker-compose.dev.yml up
-version: '3.8'
 
 services:
   # Backend API mit Hot Reload

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ArrowLeft, Vote, Calendar, BarChart3, Copy, Share2, UserCog, Plus, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, Vote, Calendar, BarChart3, Copy, Share2, UserCog, Plus, X, Loader2, AlertCircle } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toBlob } from 'html-to-image';
 import { Button } from '@/components/ui/button';
@@ -23,10 +23,12 @@ import type { Campaign, TeamAnalytics, Availability, EventOption } from '@/types
 import { toast } from 'sonner';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { sanitizeName, sanitizeText, sanitizeStringArray } from '@/lib/sanitize';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 const CampaignDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const prefersReducedMotion = useReducedMotion();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [analytics, setAnalytics] = useState<TeamAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
@@ -247,47 +249,83 @@ const CampaignDetail = () => {
   // Conditional returns AFTER all hooks
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+      <div className="min-h-screen bg-background flex items-center justify-center" role="status" aria-live="polite">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-12 h-12 mx-auto text-primary animate-spin" aria-hidden="true" />
+          <p className="text-sm text-muted-foreground">Kampagne wird geladen...</p>
+          <span className="sr-only">Kampagnendetails werden geladen</span>
+        </div>
       </div>
     );
   }
 
   if (!campaign) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-6">
-        <div className="text-center">
-          <h2 className="text-xl font-bold mb-2">Kampagne nicht gefunden</h2>
-          <Button onClick={() => navigate('/dashboard')}>Zurueck</Button>
-        </div>
+      <div className="min-h-screen bg-background flex items-center justify-center p-6" role="alert">
+        <Card className="max-w-md w-full">
+          <CardHeader>
+            <div className="flex justify-center mb-4">
+              <AlertCircle className="w-12 h-12 text-destructive" aria-hidden="true" />
+            </div>
+            <CardTitle className="text-center">Kampagne nicht gefunden</CardTitle>
+            <CardDescription className="text-center">
+              Die angeforderte Kampagne konnte nicht geladen werden.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              onClick={() => navigate('/dashboard')}
+              variant="default"
+              className="w-full"
+              aria-label="Zurück zum Dashboard"
+            >
+              Zurück zum Dashboard
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background pb-8">
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
-        <div className="container max-w-5xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} aria-label="Zurück zum Dashboard">
-              <ArrowLeft className="w-5 h-5" />
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border" role="banner">
+        <div className="container max-w-5xl mx-auto px-4 py-3 sm:py-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/dashboard')}
+              aria-label="Zurück zum Dashboard"
+              className="shrink-0"
+            >
+              <ArrowLeft className="w-5 h-5" aria-hidden="true" />
             </Button>
-            <div className="flex-1">
-              <h1 className="font-display font-bold">{campaign.name}</h1>
-              <p className="text-xs text-muted-foreground">{campaign.target_date_range}</p>
+            <div className="flex-1 min-w-0">
+              <h1 className="font-display font-bold text-base sm:text-lg truncate" id="campaign-title">
+                {campaign.name}
+              </h1>
+              <p className="text-xs text-muted-foreground truncate" aria-label={`Zeitraum: ${campaign.target_date_range}`}>
+                {campaign.target_date_range}
+              </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
               <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="ghost" size="icon" aria-label="Profil & Event verwalten">
-                    <UserCog className="w-5 h-5" />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Profil und Event verwalten"
+                    className="shrink-0"
+                  >
+                    <UserCog className="w-5 h-5" aria-hidden="true" />
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-lg">
+                <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle>Profil & Event verwalten</DialogTitle>
-                    <DialogDescription>
-                      Passe deinen Namen an und aktualisiere die Event-Details.
+                    <DialogTitle id="profile-dialog-title">Profil & Event verwalten</DialogTitle>
+                    <DialogDescription id="profile-dialog-description">
+                      Passe deinen Namen, Hobbys und Vorlieben an.
                     </DialogDescription>
                   </DialogHeader>
 
@@ -299,115 +337,164 @@ const CampaignDetail = () => {
                         value={nameDraft}
                         onChange={(e) => setNameDraft(e.target.value)}
                         placeholder="Max Mustermann"
+                        aria-describedby="profileName-hint"
+                        maxLength={50}
                       />
-                      <p className="text-xs text-muted-foreground">
-                        Wird fuer Beitraege, Votes und Hinweise verwendet.
+                      <p id="profileName-hint" className="text-xs text-muted-foreground">
+                        Wird für Beiträge, Votes und Hinweise verwendet.
                       </p>
                     </div>
 
-                    <div className="space-y-3 rounded-xl border border-border p-4 bg-secondary/30">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-semibold">Hobbys</p>
-                        <div className="flex items-center gap-2">
-                          <Input
-                            placeholder="z.B. Bowling"
-                            value={hobbyInput}
-                            onChange={(e) => setHobbyInput(e.target.value)}
-                            className="h-9"
-                          />
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
+                    <fieldset className="space-y-3 rounded-xl border border-border p-4 bg-secondary/30">
+                      <legend className="text-sm font-semibold px-2">Hobbys</legend>
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                        <Label htmlFor="hobbyInput" className="sr-only">Neues Hobby hinzufügen</Label>
+                        <Input
+                          id="hobbyInput"
+                          placeholder="z.B. Bowling"
+                          value={hobbyInput}
+                          onChange={(e) => setHobbyInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
                               const value = hobbyInput.trim();
-                              if (!value) return;
-                              if (!hobbies.includes(value)) setHobbies([...hobbies, value]);
-                              setHobbyInput('');
-                            }}
-                          >
-                            <Plus className="w-4 h-4" />
-                          </Button>
-                        </div>
+                              if (value && !hobbies.includes(value)) {
+                                setHobbies([...hobbies, value]);
+                                setHobbyInput('');
+                              }
+                            }
+                          }}
+                          className="h-9 flex-1"
+                          maxLength={30}
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            const value = hobbyInput.trim();
+                            if (!value) return;
+                            if (!hobbies.includes(value)) setHobbies([...hobbies, value]);
+                            setHobbyInput('');
+                          }}
+                          aria-label="Hobby hinzufügen"
+                          className="shrink-0"
+                        >
+                          <Plus className="w-4 h-4" aria-hidden="true" />
+                          <span className="ml-1 hidden sm:inline">Hinzufügen</span>
+                        </Button>
                       </div>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-2" role="list" aria-label="Deine Hobbys">
                         {hobbies.length === 0 && (
-                          <span className="text-xs text-muted-foreground">Noch keine Hobbys hinzugefuegt.</span>
+                          <span className="text-xs text-muted-foreground">Noch keine Hobbys hinzugefügt.</span>
                         )}
                         {hobbies.map((hobby) => (
                           <span
                             key={hobby}
+                            role="listitem"
                             className="inline-flex items-center gap-1 rounded-full bg-secondary px-3 py-1 text-xs font-medium"
                           >
                             {hobby}
                             <button
                               type="button"
                               onClick={() => setHobbies((prev) => prev.filter((h) => h !== hobby))}
-                              className="text-muted-foreground hover:text-foreground"
+                              className="text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-full"
                               aria-label={`${hobby} entfernen`}
                             >
-                              <X className="w-3 h-3" />
+                              <X className="w-3 h-3" aria-hidden="true" />
                             </button>
                           </span>
                         ))}
                       </div>
-                    </div>
+                    </fieldset>
 
-                    <div className="space-y-3 rounded-xl border border-border p-4 bg-secondary/30">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-semibold">Vorlieben</p>
-                        <div className="flex items-center gap-2">
-                          <Input
-                            placeholder="z.B. vegetarisch"
-                            value={preferenceInput}
-                            onChange={(e) => setPreferenceInput(e.target.value)}
-                            className="h-9"
-                          />
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
+                    <fieldset className="space-y-3 rounded-xl border border-border p-4 bg-secondary/30">
+                      <legend className="text-sm font-semibold px-2">Vorlieben</legend>
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                        <Label htmlFor="preferenceInput" className="sr-only">Neue Vorliebe hinzufügen</Label>
+                        <Input
+                          id="preferenceInput"
+                          placeholder="z.B. vegetarisch"
+                          value={preferenceInput}
+                          onChange={(e) => setPreferenceInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
                               const value = preferenceInput.trim();
-                              if (!value) return;
-                              if (!preferences.includes(value)) setPreferences([...preferences, value]);
-                              setPreferenceInput('');
-                            }}
-                          >
-                            <Plus className="w-4 h-4" />
-                          </Button>
-                        </div>
+                              if (value && !preferences.includes(value)) {
+                                setPreferences([...preferences, value]);
+                                setPreferenceInput('');
+                              }
+                            }
+                          }}
+                          className="h-9 flex-1"
+                          maxLength={30}
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            const value = preferenceInput.trim();
+                            if (!value) return;
+                            if (!preferences.includes(value)) setPreferences([...preferences, value]);
+                            setPreferenceInput('');
+                          }}
+                          aria-label="Vorliebe hinzufügen"
+                          className="shrink-0"
+                        >
+                          <Plus className="w-4 h-4" aria-hidden="true" />
+                          <span className="ml-1 hidden sm:inline">Hinzufügen</span>
+                        </Button>
                       </div>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-2" role="list" aria-label="Deine Vorlieben">
                         {preferences.length === 0 && (
-                          <span className="text-xs text-muted-foreground">Noch keine Vorlieben hinzugefuegt.</span>
+                          <span className="text-xs text-muted-foreground">Noch keine Vorlieben hinzugefügt.</span>
                         )}
                         {preferences.map((pref) => (
                           <span
                             key={pref}
+                            role="listitem"
                             className="inline-flex items-center gap-1 rounded-full bg-secondary px-3 py-1 text-xs font-medium"
                           >
                             {pref}
                             <button
                               type="button"
                               onClick={() => setPreferences((prev) => prev.filter((p) => p !== pref))}
-                              className="text-muted-foreground hover:text-foreground"
+                              className="text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-full"
                               aria-label={`${pref} entfernen`}
                             >
-                              <X className="w-3 h-3" />
+                              <X className="w-3 h-3" aria-hidden="true" />
                             </button>
                           </span>
                         ))}
                       </div>
-                    </div>
+                    </fieldset>
                   </div>
 
-                  <DialogFooter className="pt-2">
-                    <Button variant="outline" onClick={() => setProfileOpen(false)} disabled={savingProfile}>
+                  <DialogFooter className="pt-2 flex-col sm:flex-row gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setProfileOpen(false)}
+                      disabled={savingProfile}
+                      className="w-full sm:w-auto"
+                    >
                       Abbrechen
                     </Button>
-                    <Button variant="gradient" onClick={handleProfileSave} disabled={savingProfile}>
-                      {savingProfile ? 'Speichern...' : 'Speichern'}
+                    <Button
+                      variant="gradient"
+                      onClick={handleProfileSave}
+                      disabled={savingProfile}
+                      className="w-full sm:w-auto"
+                    >
+                      {savingProfile ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
+                          Speichern...
+                        </>
+                      ) : (
+                        'Speichern'
+                      )}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -415,43 +502,54 @@ const CampaignDetail = () => {
               <ThemeToggle />
             </div>
             {campaign.status === 'voting' && (
-              <Button variant="gradient" size="sm" onClick={() => navigate(`/voting/${id}`)}>
-                <Vote className="w-4 h-4" />
-                Abstimmen
+              <Button
+                variant="gradient"
+                size="sm"
+                onClick={() => navigate(`/voting/${id}`)}
+                className="ml-auto sm:ml-0"
+                aria-label="Zur Abstimmung"
+              >
+                <Vote className="w-4 h-4 sm:mr-2" aria-hidden="true" />
+                <span className="hidden sm:inline">Abstimmen</span>
               </Button>
             )}
           </div>
         </div>
       </header>
 
-      <main className="container max-w-5xl mx-auto px-4 py-8">
+      <main className="container max-w-5xl mx-auto px-4 py-6 sm:py-8" role="main" aria-labelledby="campaign-title">
         <Tabs defaultValue="budget" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-6">
-            <TabsTrigger value="budget">Budget</TabsTrigger>
-            <TabsTrigger value="schedule">
-              <Calendar className="w-4 h-4 mr-1" />
-              Termine
+          <TabsList className="grid w-full grid-cols-4 mb-6 h-auto" role="tablist" aria-label="Kampagnen-Navigation">
+            <TabsTrigger value="budget" className="text-xs sm:text-sm py-2">
+              Budget
             </TabsTrigger>
-            <TabsTrigger value="analytics">
-              <BarChart3 className="w-4 h-4 mr-1" />
-              Insights
+            <TabsTrigger value="schedule" className="text-xs sm:text-sm py-2">
+              <Calendar className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" aria-hidden="true" />
+              <span className="hidden xs:inline">Termine</span>
+              <span className="xs:hidden">Zeit</span>
             </TabsTrigger>
-            <TabsTrigger value="activities">
-              <Calendar className="w-4 h-4 mr-1" />
-              Aktivitaeten
+            <TabsTrigger value="analytics" className="text-xs sm:text-sm py-2">
+              <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" aria-hidden="true" />
+              <span className="hidden xs:inline">Insights</span>
+              <span className="xs:hidden">Stats</span>
+            </TabsTrigger>
+            <TabsTrigger value="activities" className="text-xs sm:text-sm py-2">
+              <Calendar className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" aria-hidden="true" />
+              <span className="hidden xs:inline">Aktivitäten</span>
+              <span className="xs:hidden">Events</span>
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="budget" className="space-y-4">
+          <TabsContent value="budget" className="space-y-4" role="tabpanel" aria-label="Budget-Übersicht">
             <div className="grid gap-4 lg:grid-cols-12">
               <div className="space-y-4 lg:col-span-7">
                 <Card variant="elevated" className="border border-border/60 shadow-sm">
                   <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                          <Calendar className="w-4 h-4" />
-                          Uebersicht
+                          <Calendar className="w-4 h-4" aria-hidden="true" />
+                          Übersicht
                         </span>
                         <CardTitle className="text-base">Voting & Deadline</CardTitle>
                       </div>
@@ -463,23 +561,25 @@ const CampaignDetail = () => {
                   <CardContent className="space-y-4">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Voting-Deadline</span>
-                      <span className="font-semibold">
+                      <span className="font-semibold" aria-label={votingDeadline ? `Deadline am ${formatDeadline(votingDeadline)}` : 'Keine Deadline gesetzt'}>
                         {votingDeadline ? formatDeadline(votingDeadline) : 'Keine Deadline gesetzt'}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Status</span>
-                      <span className={`font-semibold ${votingClosed ? 'text-muted-foreground' : 'text-primary'}`}>
+                      <Badge variant={votingClosed ? 'secondary' : 'default'}>
                         {votingDeadline ? (votingClosed ? 'Abgeschlossen' : 'Laufend') : 'Offen'}
-                      </span>
+                      </Badge>
                     </div>
                     {votingDeadline && (
-                      <div className="space-y-1.5">
+                      <div className="space-y-1.5" role="group" aria-label="Voting-Fortschritt">
                         <Progress
                           value={votingProgress ?? 0}
                           variant={votingClosed ? 'success' : 'gradient'}
+                          className="h-3"
+                          aria-label={`Voting-Fortschritt: ${votingProgress ?? 0} Prozent`}
                         />
-                        <div className="flex justify-between text-xs text-muted-foreground">
+                        <div className="flex justify-between text-xs text-muted-foreground" aria-hidden="true">
                           <span>Heute</span>
                           <span>{votingProgress ?? 0}%</span>
                           <span>Deadline</span>
@@ -498,33 +598,51 @@ const CampaignDetail = () => {
                   <Card ref={qrCardRef} variant="elevated" className="border border-border/60 shadow-sm">
                     <CardHeader className="text-center pb-2">
                       <div className="mb-2">
-                        <span className="px-3 py-1 text-xs font-semibold tracking-widest text-primary/80 uppercase bg-primary/10 rounded-full">
+                        <Badge variant="outline" className="text-xs font-semibold tracking-widest uppercase">
                           Event
-                        </span>
+                        </Badge>
                       </div>
-                      <CardTitle className="text-2xl">QR-Code fuer dein Event</CardTitle>
+                      <CardTitle className="text-xl sm:text-2xl">QR-Code für dein Event</CardTitle>
                       <CardDescription>
                         Teile den Code, damit dein Team direkt zum Event gelangt.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="flex justify-center pb-6">
                       <motion.div
-                        initial={{ scale: 0.9, opacity: 0 }}
+                        initial={prefersReducedMotion ? { opacity: 1 } : { scale: 0.9, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        transition={{ duration: 0.2 }}
+                        transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2, ease: "easeOut" }}
                         className="p-4 bg-white rounded-2xl shadow-sm border"
                       >
-                        <QRCodeSVG value={eventUrl} size={200} level="H" includeMargin className="rounded-xl" />
+                        <QRCodeSVG
+                          value={eventUrl}
+                          size={200}
+                          level="H"
+                          includeMargin
+                          className="rounded-xl"
+                          aria-label={`QR-Code für Event: ${campaign.name}`}
+                        />
                       </motion.div>
                     </CardContent>
                   </Card>
                   <div className="flex gap-2">
-                    <Button variant="outline" className="flex-1" onClick={copyEventLink}>
-                      <Copy className="w-4 h-4" />
-                      Link kopieren
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={copyEventLink}
+                      aria-label="Event-Link in Zwischenablage kopieren"
+                    >
+                      <Copy className="w-4 h-4 mr-2" aria-hidden="true" />
+                      <span className="hidden sm:inline">Link kopieren</span>
+                      <span className="sm:hidden">Kopieren</span>
                     </Button>
-                    <Button variant="gradient" className="flex-1" onClick={shareEventCard}>
-                      <Share2 className="w-4 h-4" />
+                    <Button
+                      variant="gradient"
+                      className="flex-1"
+                      onClick={shareEventCard}
+                      aria-label="Event-QR-Code teilen"
+                    >
+                      <Share2 className="w-4 h-4 mr-2" aria-hidden="true" />
                       Teilen
                     </Button>
                   </div>
@@ -533,53 +651,62 @@ const CampaignDetail = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="schedule">
+          <TabsContent value="schedule" role="tabpanel" aria-label="Termine und Verfügbarkeit">
             <div className="grid gap-4 lg:grid-cols-12">
               <div className="lg:col-span-8">
                 <DateGrid onSubmit={handleAvailability} />
               </div>
-              <div className="lg:col-span-4 space-y-3 text-sm text-muted-foreground border border-border rounded-2xl p-4 bg-secondary/40">
-                <p className="font-semibold text-foreground">Tipps fuer Terminfindung</p>
+              <aside className="lg:col-span-4 space-y-3 text-sm text-muted-foreground border border-border rounded-2xl p-4 bg-secondary/40" aria-label="Tipps zur Terminfindung">
+                <h3 className="font-semibold text-foreground">Tipps für Terminfindung</h3>
                 <ul className="list-disc pl-4 space-y-1">
-                  <li>Wochenenden bevorzugen fuer Outdoor-Events.</li>
+                  <li>Wochenenden bevorzugen für Outdoor-Events.</li>
                   <li>Mindestens zwei Slots pro Person anfragen.</li>
-                  <li>Spaeter Verfuegbarkeiten aktualisieren? Einfach neu absenden.</li>
+                  <li>Später Verfügbarkeiten aktualisieren? Einfach neu absenden.</li>
                 </ul>
-              </div>
+              </aside>
             </div>
           </TabsContent>
 
-          <TabsContent value="analytics" className="space-y-4">
-            {analytics && (
+          <TabsContent value="analytics" className="space-y-4" role="tabpanel" aria-label="Team-Analytics und Insights">
+            {analytics ? (
               <>
                 <PersonaSummary analytics={analytics} />
                 <TeamMeter analytics={analytics} />
               </>
+            ) : (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <Loader2 className="w-8 h-8 mx-auto mb-4 text-muted-foreground animate-spin" aria-hidden="true" />
+                  <p className="text-sm text-muted-foreground">Analytics werden geladen...</p>
+                </CardContent>
+              </Card>
             )}
           </TabsContent>
 
-          <TabsContent value="activities" className="space-y-4">
+          <TabsContent value="activities" className="space-y-4" role="tabpanel" aria-label="Verfügbare Event-Aktivitäten">
             <Card variant="elevated">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-primary" />
-                  Verfuegbare Events
+                  <Calendar className="w-5 h-5 text-primary" aria-hidden="true" />
+                  Verfügbare Events
                 </CardTitle>
                 <CardDescription>Alle Optionen aus allen Regionen mit Filter und Suche.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid gap-3 md:grid-cols-3">
-                  <div className="space-y-1">
-                    <Label className="text-sm text-muted-foreground">Suche</Label>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="activitySearch" className="text-sm font-medium">Suche</Label>
                     <Input
+                      id="activitySearch"
                       placeholder="Titel, Tags, Region..."
                       value={activitySearch}
                       onChange={(e) => setActivitySearch(e.target.value)}
+                      aria-label="Nach Aktivitäten suchen"
                     />
                   </div>
-                  <div className="space-y-1">
-                    <Label className="text-sm text-muted-foreground">Regionen</Label>
-                    <div className="flex flex-wrap gap-2">
+                  <fieldset className="space-y-1.5">
+                    <legend className="text-sm font-medium">Regionen</legend>
+                    <div className="flex flex-wrap gap-2" role="group" aria-label="Regionsfilter">
                       {uniqueRegions.map((regionCode) => (
                         <Button
                           key={regionCode}
@@ -591,15 +718,17 @@ const CampaignDetail = () => {
                               prev.includes(regionCode) ? prev.filter((r) => r !== regionCode) : [...prev, regionCode]
                             )
                           }
+                          aria-pressed={activityRegionFilter.includes(regionCode)}
+                          aria-label={`Region ${regionCode} ${activityRegionFilter.includes(regionCode) ? 'abwählen' : 'auswählen'}`}
                         >
                           {regionCode}
                         </Button>
                       ))}
                     </div>
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-sm text-muted-foreground">Kategorien</Label>
-                    <div className="flex flex-wrap gap-2">
+                  </fieldset>
+                  <fieldset className="space-y-1.5">
+                    <legend className="text-sm font-medium">Kategorien</legend>
+                    <div className="flex flex-wrap gap-2" role="group" aria-label="Kategoriefilter">
                       {['Action', 'Food', 'Relax', 'Party'].map((cat) => (
                         <Button
                           key={cat}
@@ -611,52 +740,87 @@ const CampaignDetail = () => {
                               prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
                             )
                           }
+                          aria-pressed={activityCategoryFilter.includes(cat)}
+                          aria-label={`Kategorie ${cat} ${activityCategoryFilter.includes(cat) ? 'abwählen' : 'auswählen'}`}
                         >
                           {cat}
                         </Button>
                       ))}
                     </div>
-                  </div>
+                  </fieldset>
                 </div>
 
                 {activityTabLoading ? (
-                  <div className="text-center text-sm text-muted-foreground py-8 rounded-xl border border-border">
-                    Lade Events...
+                  <div className="text-center py-12 rounded-xl border border-border bg-secondary/20" role="status" aria-live="polite">
+                    <Loader2 className="w-8 h-8 mx-auto mb-3 text-primary animate-spin" aria-hidden="true" />
+                    <p className="text-sm text-muted-foreground">Lade Events...</p>
+                  </div>
+                ) : filteredActivities.length === 0 ? (
+                  <div className="text-center py-12 rounded-xl border border-border bg-secondary/20">
+                    <AlertCircle className="w-12 h-12 mx-auto mb-3 text-muted-foreground" aria-hidden="true" />
+                    <p className="text-sm font-medium">Keine Events gefunden</p>
+                    <p className="text-xs text-muted-foreground mt-1">Versuche andere Filter oder Suchbegriffe.</p>
                   </div>
                 ) : (
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {filteredActivities.map((option) => (
-                        <Card
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" role="list" aria-label="Event-Optionen">
+                    <AnimatePresence mode="popLayout">
+                      {filteredActivities.map((option, index) => (
+                        <motion.div
                           key={option.id}
-                          variant="elevated"
-                          className="overflow-hidden hover:border-primary/50 transition-all duration-200 cursor-pointer flex flex-col"
-                          onClick={() => setSelectedActivity(option)}
+                          initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.9 }}
+                          transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2, delay: Math.min(index * 0.03, 0.3) }}
+                          role="listitem"
                         >
-                          <div
-                            className="h-32 w-full bg-cover bg-center"
-                            style={{
-                              backgroundImage: option.image_url
-                                ? `linear-gradient(rgba(0,0,0,0.15), rgba(0,0,0,0.25)), url(${option.image_url})`
-                                : 'linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)',
+                          <Card
+                            variant="elevated"
+                            className="overflow-hidden hover:border-primary/50 hover:shadow-lg transition-all duration-200 cursor-pointer flex flex-col h-full group focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                            onClick={() => setSelectedActivity(option)}
+                            tabIndex={0}
+                            role="button"
+                            aria-label={`${option.title} - ${option.category} in ${option.location_region}, ${Math.round(option.est_price_pp)} Euro pro Person`}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                setSelectedActivity(option);
+                              }
                             }}
-                          />
-                          <CardContent className="p-4 flex flex-col gap-2 flex-1">
-                            <div className="flex items-center justify-between">
-                              <Badge variant="outline">{option.category}</Badge>
-                              <span className="text-xs text-muted-foreground">{option.location_region}</span>
-                            </div>
-                            <h4 className="font-semibold leading-tight line-clamp-2">{option.title}</h4>
-                            <p className="text-xs text-muted-foreground line-clamp-2">
-                              {option.description || 'Keine Beschreibung vorhanden.'}
-                            </p>
-                            <div className="flex items-center justify-between text-sm mt-auto">
-                              <span className="text-muted-foreground">Preis p.P.</span>
-                              <span className="font-semibold">EUR {Math.round(option.est_price_pp)}</span>
-                            </div>
-                          </CardContent>
-                        </Card>
+                          >
+                            <div
+                              className={`h-32 w-full bg-cover bg-center ${!prefersReducedMotion ? 'transition-transform duration-200 group-hover:scale-105' : ''}`}
+                              style={{
+                                backgroundImage: option.image_url
+                                  ? `linear-gradient(rgba(0,0,0,0.15), rgba(0,0,0,0.25)), url(${option.image_url})`
+                                  : 'linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)',
+                              }}
+                              role="img"
+                              aria-label={`Bild für ${option.title}`}
+                            />
+                            <CardContent className="p-4 flex flex-col gap-2 flex-1">
+                              <div className="flex items-center justify-between gap-2">
+                                <Badge variant="outline">{option.category}</Badge>
+                                <span className="text-xs text-muted-foreground truncate">{option.location_region}</span>
+                              </div>
+                              <h4 className="font-semibold leading-tight line-clamp-2">{option.title}</h4>
+                              <p className="text-xs text-muted-foreground line-clamp-2">
+                                {option.description || 'Keine Beschreibung vorhanden.'}
+                              </p>
+                              <div className="flex items-center justify-between text-sm mt-auto pt-2 border-t border-border/50">
+                                <span className="text-muted-foreground">Preis p.P.</span>
+                                <span className="font-semibold">€{Math.round(option.est_price_pp)}</span>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
                       ))}
+                    </AnimatePresence>
                   </div>
+                )}
+                {!activityTabLoading && filteredActivities.length > 0 && (
+                  <p className="text-xs text-center text-muted-foreground" aria-live="polite">
+                    {filteredActivities.length} {filteredActivities.length === 1 ? 'Event' : 'Events'} gefunden
+                  </p>
                 )}
               </CardContent>
             </Card>
@@ -664,23 +828,44 @@ const CampaignDetail = () => {
             <Dialog open={!!selectedActivity} onOpenChange={(open) => !open && setSelectedActivity(null)}>
               <DialogContent className="sm:max-w-lg">
                 {selectedActivity && (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <DialogHeader>
-                      <DialogTitle>{selectedActivity.title}</DialogTitle>
-                      <DialogDescription>
+                      <DialogTitle id="activity-dialog-title">{selectedActivity.title}</DialogTitle>
+                      <DialogDescription id="activity-dialog-description">
                         {selectedActivity.category} • {selectedActivity.location_region}
                       </DialogDescription>
                     </DialogHeader>
-                    <div className="text-sm text-muted-foreground space-y-2">
-                      <p>{selectedActivity.description || 'Keine Beschreibung vorhanden.'}</p>
-                      <p>Preis p.P.: EUR {Math.round(selectedActivity.est_price_pp)}</p>
+                    {selectedActivity.image_url && (
+                      <div
+                        className="w-full h-48 rounded-lg bg-cover bg-center"
+                        style={{
+                          backgroundImage: `linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.2)), url(${selectedActivity.image_url})`,
+                        }}
+                        role="img"
+                        aria-label={`Bild für ${selectedActivity.title}`}
+                      />
+                    )}
+                    <div className="text-sm space-y-3">
+                      <div>
+                        <h4 className="font-semibold mb-1">Beschreibung</h4>
+                        <p className="text-muted-foreground">
+                          {selectedActivity.description || 'Keine Beschreibung vorhanden.'}
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/50">
+                        <span className="text-muted-foreground">Preis pro Person</span>
+                        <span className="text-lg font-bold">€{Math.round(selectedActivity.est_price_pp)}</span>
+                      </div>
                       {selectedActivity.tags?.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {selectedActivity.tags.map((tag) => (
-                            <span key={tag} className="px-2 py-1 text-xs rounded-full bg-secondary">
-                              {tag}
-                            </span>
-                          ))}
+                        <div>
+                          <h4 className="font-semibold mb-2">Tags</h4>
+                          <div className="flex flex-wrap gap-2" role="list" aria-label="Event-Tags">
+                            {selectedActivity.tags.map((tag) => (
+                              <Badge key={tag} variant="secondary" className="text-xs" role="listitem">
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>
