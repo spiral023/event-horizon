@@ -367,3 +367,17 @@ export const getFundingPercentage = (campaign: Campaign): number => {
 
 
 
+
+
+export const updateStretchGoals = async (
+  campaignId: string,
+  stretchGoals: StretchGoal[]
+): Promise<Campaign> => {
+  const payload = stretchGoals.map(({ id, ...goal }) => ({ ...goal }));
+  const updated = await request<Campaign>(`/campaigns/${campaignId}/stretch-goals`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+  return mapCampaign(updated);
+};
+

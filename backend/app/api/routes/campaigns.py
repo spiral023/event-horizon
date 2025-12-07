@@ -10,6 +10,7 @@ from app.schemas.domain import (
     AvailabilityPayload,
     CampaignCreate,
     CampaignRead,
+    StretchGoalCreate,
     PrivateContributionCreate,
     TeamAnalytics,
     VotePayload,
@@ -100,6 +101,35 @@ def create_campaign(
             )
         )
 
+    session.commit()
+    return hydrate_campaign(session, campaign)
+
+
+@router.put("/{campaign_id}/stretch-goals", response_model=CampaignRead, status_code=status.HTTP_200_OK)
+def replace_stretch_goals(
+    campaign_id: str,
+    goals: List[StretchGoalCreate],
+    session: Session = Depends(get_session),
+) -> CampaignRead:
+    campaign = session.get(Campaign, campaign_id)
+    if not campaign:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found")
+
+    # Remove existing stretch goals for this campaign
+    session.exec(delete(StretchGoal).where(StretchGoal.campaign_id == campaign_id))
+    session.commit()
+
+    # Insert new ones
+    for goal in goals:
+        session.add(
+            StretchGoal(
+                campaign_id=campaign_id,
+                amount_threshold=goal.amount_threshold,
+                reward_description=goal.reward_description,
+                unlocked=goal.unlocked,
+                icon=goal.icon,
+            )
+        )
     session.commit()
     return hydrate_campaign(session, campaign)
 
