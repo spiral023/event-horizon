@@ -1,0 +1,49 @@
+# Docker Compose für lokales Development
+# Usage: docker compose -f docker-compose.dev.yml up
+version: '3.8'
+
+services:
+  # Backend API mit Hot Reload
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    env_file:
+      - ./backend/.env.local
+    volumes:
+      # Mount source code for hot reload
+      - ./backend/app:/app/app:ro
+      - ./backend/data:/app/data
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Frontend mit Hot Reload
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    environment:
+      - VITE_API_URL=http://localhost:8000/api
+    volumes:
+      # Mount source code for hot reload
+      - ./frontend/src:/app/src:ro
+      - ./frontend/public:/app/public:ro
+      - ./frontend/index.html:/app/index.html:ro
+      - ./frontend/vite.config.ts:/app/vite.config.ts:ro
+      - ./frontend/tailwind.config.ts:/app/tailwind.config.ts:ro
+      - ./frontend/tsconfig.json:/app/tsconfig.json:ro
+      # Exclude node_modules from volume (use container's)
+      - /app/node_modules
+    ports:
+      - "8080:5173"
+    depends_on:
+      - api
+    restart: unless-stopped
+    command: npm run dev -- --host 0.0.0.0 --port 5173

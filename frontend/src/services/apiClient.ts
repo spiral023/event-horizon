@@ -1,6 +1,7 @@
 ﻿import type {
   Availability,
   Campaign,
+  CampaignStatus,
   EventOption,
   PrivateContribution,
   RegionCode,
@@ -14,6 +15,22 @@ const API_BASE_URL =
   (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') || 'http://localhost:8000/api';
 
 type ApiMessage = { message: string }
+
+/**
+ * Custom API Error class for better error handling
+ */
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+    public data?: unknown
+  ) {
+    super(message);
+    this.name = 'ApiError';
+    // Maintains proper prototype chain for instanceof checks
+    Object.setPrototypeOf(this, ApiError.prototype);
+  }
+}
 
 const dedupeEventOptions = (events: EventOption[]) => {
   const seen = new Set<string>();

@@ -47,26 +47,45 @@ TeamVote ist eine deutsche, mobile-first Web-App für Team-Events: Ideen sammeln
   - Cloudflare Pages (Frontend) + VPS (Backend)
   - Klassisches Hosting (uvicorn + static files)
 
-## Schnellstart (lokal)
-```bash
-# Voraussetzungen: Node 18+, npm; Python 3.10+; optional Docker
+## 🚀 Schnellstart (lokal mit Docker - Empfohlen)
 
+**Voraussetzungen:** Docker Desktop
+
+```powershell
+# Starten
+.\scripts\dev-start.ps1
+
+# URLs:
+# Frontend: http://localhost:8080
+# Backend:  http://localhost:8000/docs
+```
+
+**Hot Reload aktiviert!** Code-Änderungen werden automatisch übernommen.
+
+📖 **Mehr Details:** [QUICK-START.md](QUICK-START.md) | [DEV-SETUP.md](DEV-SETUP.md)
+
+<details>
+<summary>Alternative: Ohne Docker (Manuell)</summary>
+
+```bash
 # Backend (venv)
 cd backend
 python -m venv .venv
-. .venv/Scripts/activate  # Windows
+.venv\Scripts\activate  # Windows
 # source .venv/bin/activate   # Linux/Mac
 pip install -r requirements.txt
+cp .env.local .env  # Wichtig: .env.local nutzen!
 uvicorn app.main:app --reload --port 8000
 
 # Frontend (neues Terminal)
 cd frontend
 npm install
-VITE_API_URL=http://localhost:8000/api npm run dev
+cp .env.local .env  # Wichtig: .env.local nutzen!
+npm run dev
 # App unter http://localhost:8080/
 ```
 
-Alternativ: `scripts/start-app.ps1` (Windows, startet Backend+Frontend) oder `docker compose up -d` (Backend-Container; nur Backend).
+</details>
 
 ## Env Variablen
 - `frontend/.env`: `VITE_API_URL=http://localhost:8000/api`

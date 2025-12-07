@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { TinderDeck } from "@/features/voting/TinderDeck";
 import { getCampaign, submitVotes } from "@/services/apiClient";
 import { useAppStore } from "@/store/appStore";
-import type { Campaign, Vote as VoteType } from "@/types/domain";
+import type { Campaign, EventOption, Vote as VoteType } from "@/types/domain";
 import { toast } from "sonner";
 
 const Voting = () => {
