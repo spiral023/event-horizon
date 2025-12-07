@@ -19,17 +19,17 @@ export const WallOfFame = ({ contributions }: WallOfFameProps) => {
 
   return (
     <Card variant="elevated">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+      <CardHeader className="pb-4">
+        <div className="flex items-center gap-2">
           <Crown className="w-5 h-5 text-warning" />
-          Wall of Fame
-        </CardTitle>
+          <CardTitle className="font-display text-typo-h2">Wall of Fame</CardTitle>
+        </div>
       </CardHeader>
       <CardContent>
         {contributions.length === 0 ? (
           <div className="text-center py-6">
-            <p className="text-muted-foreground">Noch keine Beiträge</p>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-typo-body text-muted-foreground">Noch keine Beiträge</p>
+            <p className="text-typo-body text-muted-foreground mt-1">
               Sei der Erste und werde zum Early Bird! 🐦
             </p>
           </div>
@@ -66,28 +66,28 @@ export const WallOfFame = ({ contributions }: WallOfFameProps) => {
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className={`font-medium truncate ${
+                      <span className={`text-typo-h3 truncate ${
                         contribution.is_anonymous ? 'italic text-muted-foreground' : ''
                       }`}>
-                        {contribution.is_anonymous 
-                          ? 'Ein mysteriöser Gönner 🕵️‍♂️' 
+                        {contribution.is_anonymous
+                          ? 'Ein mysteriöser Gönner 🕵️‍♂️'
                           : contribution.user_name
                         }
                       </span>
                       {badge && (
-                        <Badge variant={badge.variant} className="text-xs shrink-0">
+                        <Badge variant={badge.variant} className="text-typo-body shrink-0">
                           {badge.label}
                         </Badge>
                       )}
                     </div>
                     {contribution.is_hero && !contribution.is_anonymous && (
-                      <p className="text-xs text-muted-foreground">Team-Held ⭐</p>
+                      <p className="text-typo-body text-muted-foreground">Team-Held ⭐</p>
                     )}
                   </div>
 
                   {/* Amount */}
                   <div className="text-right">
-                    <p className="font-bold text-lg">€{contribution.amount}</p>
+                    <p className="text-typo-h3">€{contribution.amount}</p>
                   </div>
                 </motion.div>
               );

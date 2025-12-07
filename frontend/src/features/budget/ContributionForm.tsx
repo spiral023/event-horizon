@@ -35,12 +35,12 @@ export const ContributionForm = ({ onSubmit, isSubmitting }: ContributionFormPro
 
   return (
     <Card variant="elevated">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+      <CardHeader className="pb-4">
+        <div className="flex items-center gap-2 mb-1">
           <Sparkles className="w-5 h-5 text-primary" />
-          Beitrag leisten
-        </CardTitle>
-        <CardDescription>
+          <CardTitle className="font-display text-typo-h2">Beitrag leisten</CardTitle>
+        </div>
+        <CardDescription className="text-typo-body">
           Unterstütze das Team-Event mit deinem Beitrag
         </CardDescription>
       </CardHeader>
@@ -98,12 +98,12 @@ export const ContributionForm = ({ onSubmit, isSubmitting }: ContributionFormPro
                 <Eye className="w-5 h-5 text-muted-foreground" />
               )}
               <div className="text-left">
-                <p className="font-medium">
+                <p className="text-typo-h3">
                   {isAnonymous ? 'Robin-Hood-Modus' : 'Öffentlicher Beitrag'}
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  {isAnonymous 
-                    ? 'Dein Beitrag bleibt geheim 🕵️‍♂️' 
+                <p className="text-typo-body text-muted-foreground">
+                  {isAnonymous
+                    ? 'Dein Beitrag bleibt geheim 🕵️‍♂️'
                     : `Wird als "${user?.name || 'Du'}" angezeigt`
                   }
                 </p>

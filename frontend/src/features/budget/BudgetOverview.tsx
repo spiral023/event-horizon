@@ -48,12 +48,12 @@ export const BudgetOverview = ({ campaign }: BudgetOverviewProps) => {
 
   return (
     <Card variant="elevated">
-      <CardHeader>
+      <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-primary" />
-            Budget-Topf
-          </CardTitle>
+            <CardTitle className="font-display text-typo-h2">Budget-Topf</CardTitle>
+          </div>
           <Badge variant={percentage >= 100 ? 'success' : 'default'}>
             {Math.round(percentage)}%
           </Badge>
@@ -62,17 +62,17 @@ export const BudgetOverview = ({ campaign }: BudgetOverviewProps) => {
       <CardContent className="space-y-6">
         {/* Main progress */}
         <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Gesammelt</span>
-            <span className="font-bold text-lg">
-              €{totalFunded.toLocaleString()} 
-              <span className="text-muted-foreground font-normal text-sm">
+          <div className="flex justify-between">
+            <span className="text-typo-body text-muted-foreground">Gesammelt</span>
+            <span className="text-typo-h3">
+              €{totalFunded.toLocaleString()}
+              <span className="text-typo-body text-muted-foreground font-normal">
                 {' '}/ €{campaign.total_budget_needed.toLocaleString()}
               </span>
             </span>
           </div>
-          <Progress 
-            value={Math.min(animatedPercentage, 100)} 
+          <Progress
+            value={Math.min(animatedPercentage, 100)}
             variant={percentage >= 100 ? 'success' : 'gradient'}
             className="h-4"
           />
@@ -88,8 +88,8 @@ export const BudgetOverview = ({ campaign }: BudgetOverviewProps) => {
               className="text-center p-3 rounded-xl bg-secondary/50"
             >
               <source.icon className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
-              <p className="text-lg font-bold">€{source.amount}</p>
-              <p className="text-xs text-muted-foreground">{source.label}</p>
+              <p className="text-typo-h3">€{source.amount}</p>
+              <p className="text-typo-body text-muted-foreground">{source.label}</p>
             </motion.div>
           ))}
         </div>
@@ -121,11 +121,11 @@ export const StretchGoals = ({ goals, currentPercentage }: StretchGoalsProps) =>
 
   return (
     <Card variant="elevated">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+      <CardHeader className="pb-4">
+        <div className="flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-warning" />
-          Stretch Goals
-        </CardTitle>
+          <CardTitle className="font-display text-typo-h2">Stretch Goals</CardTitle>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="relative">
@@ -163,14 +163,14 @@ export const StretchGoals = ({ goals, currentPercentage }: StretchGoalsProps) =>
                 </motion.div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold">{goal.amount_threshold}%</span>
+                    <span className="text-typo-h3">{goal.amount_threshold}%</span>
                     {goal.unlocked && (
-                      <Badge variant="success" className="text-xs">
+                      <Badge variant="success" className="text-typo-body">
                         Erreicht!
                       </Badge>
                     )}
                   </div>
-                  <p className={`text-sm ${goal.unlocked ? 'text-foreground' : 'text-muted-foreground'}`}>
+                  <p className={`text-typo-body ${goal.unlocked ? 'text-foreground' : 'text-muted-foreground'}`}>
                     {goal.reward_description}
                   </p>
                 </div>

@@ -140,6 +140,12 @@ export default {
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
         "bounce-in": "bounce-in 0.5s ease-out",
       },
+      fontSize: {
+        "typo-h1": ["1.75rem", { lineHeight: "2.25rem", fontWeight: "700" }], // 28px, bold, für Seitentitel
+        "typo-h2": ["1.125rem", { lineHeight: "1.75rem", fontWeight: "600" }], // 18px, semibold, für Card-Titel
+        "typo-h3": ["1rem", { lineHeight: "1.5rem", fontWeight: "600" }], // 16px, semibold, für Datenwerte
+        "typo-body": ["0.875rem", { lineHeight: "1.25rem", fontWeight: "400" }], // 14px, normal, für Labels
+      },
     },
   },
   plugins: [tailwindcssAnimate],

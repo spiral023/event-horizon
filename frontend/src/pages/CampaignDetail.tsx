@@ -252,7 +252,7 @@ const CampaignDetail = () => {
       <div className="min-h-screen bg-background flex items-center justify-center" role="status" aria-live="polite">
         <div className="text-center space-y-4">
           <Loader2 className="w-12 h-12 mx-auto text-primary animate-spin" aria-hidden="true" />
-          <p className="text-sm text-muted-foreground">Kampagne wird geladen...</p>
+          <p className="text-typo-body text-muted-foreground">Kampagne wird geladen...</p>
           <span className="sr-only">Kampagnendetails werden geladen</span>
         </div>
       </div>
@@ -267,8 +267,8 @@ const CampaignDetail = () => {
             <div className="flex justify-center mb-4">
               <AlertCircle className="w-12 h-12 text-destructive" aria-hidden="true" />
             </div>
-            <CardTitle className="text-center">Kampagne nicht gefunden</CardTitle>
-            <CardDescription className="text-center">
+            <CardTitle className="font-display text-typo-h2 text-center">Kampagne nicht gefunden</CardTitle>
+            <CardDescription className="text-typo-body text-center">
               Die angeforderte Kampagne konnte nicht geladen werden.
             </CardDescription>
           </CardHeader>
@@ -302,10 +302,10 @@ const CampaignDetail = () => {
               <ArrowLeft className="w-5 h-5" aria-hidden="true" />
             </Button>
             <div className="flex-1 min-w-0">
-              <h1 className="font-display font-bold text-base sm:text-lg truncate" id="campaign-title">
+              <h1 className="font-display text-typo-h1 truncate" id="campaign-title">
                 {campaign.name}
               </h1>
-              <p className="text-xs text-muted-foreground truncate" aria-label={`Zeitraum: ${campaign.target_date_range}`}>
+              <p className="text-typo-body text-muted-foreground truncate" aria-label={`Zeitraum: ${campaign.target_date_range}`}>
                 {campaign.target_date_range}
               </p>
             </div>
@@ -323,15 +323,15 @@ const CampaignDetail = () => {
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle id="profile-dialog-title">Profil & Event verwalten</DialogTitle>
-                    <DialogDescription id="profile-dialog-description">
+                    <DialogTitle className="font-display text-typo-h2" id="profile-dialog-title">Profil & Event verwalten</DialogTitle>
+                    <DialogDescription className="text-typo-body" id="profile-dialog-description">
                       Passe deinen Namen, Hobbys und Vorlieben an.
                     </DialogDescription>
                   </DialogHeader>
 
                   <div className="space-y-6">
                     <div className="space-y-2">
-                      <Label htmlFor="profileName">Dein Name</Label>
+                      <Label htmlFor="profileName" className="text-typo-body font-medium">Dein Name</Label>
                       <Input
                         id="profileName"
                         value={nameDraft}
@@ -340,13 +340,13 @@ const CampaignDetail = () => {
                         aria-describedby="profileName-hint"
                         maxLength={50}
                       />
-                      <p id="profileName-hint" className="text-xs text-muted-foreground">
+                      <p id="profileName-hint" className="text-typo-body text-muted-foreground">
                         Wird für Beiträge, Votes und Hinweise verwendet.
                       </p>
                     </div>
 
                     <fieldset className="space-y-3 rounded-xl border border-border p-4 bg-secondary/30">
-                      <legend className="text-sm font-semibold px-2">Hobbys</legend>
+                      <legend className="text-typo-body font-semibold px-2">Hobbys</legend>
                       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
                         <Label htmlFor="hobbyInput" className="sr-only">Neues Hobby hinzufügen</Label>
                         <Input
@@ -386,13 +386,13 @@ const CampaignDetail = () => {
                       </div>
                       <div className="flex flex-wrap gap-2" role="list" aria-label="Deine Hobbys">
                         {hobbies.length === 0 && (
-                          <span className="text-xs text-muted-foreground">Noch keine Hobbys hinzugefügt.</span>
+                          <span className="text-typo-body text-muted-foreground">Noch keine Hobbys hinzugefügt.</span>
                         )}
                         {hobbies.map((hobby) => (
                           <span
                             key={hobby}
                             role="listitem"
-                            className="inline-flex items-center gap-1 rounded-full bg-secondary px-3 py-1 text-xs font-medium"
+                            className="inline-flex items-center gap-1 rounded-full bg-secondary px-3 py-1 text-typo-body font-medium"
                           >
                             {hobby}
                             <button
@@ -409,7 +409,7 @@ const CampaignDetail = () => {
                     </fieldset>
 
                     <fieldset className="space-y-3 rounded-xl border border-border p-4 bg-secondary/30">
-                      <legend className="text-sm font-semibold px-2">Vorlieben</legend>
+                      <legend className="text-typo-body font-semibold px-2">Vorlieben</legend>
                       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
                         <Label htmlFor="preferenceInput" className="sr-only">Neue Vorliebe hinzufügen</Label>
                         <Input
@@ -449,13 +449,13 @@ const CampaignDetail = () => {
                       </div>
                       <div className="flex flex-wrap gap-2" role="list" aria-label="Deine Vorlieben">
                         {preferences.length === 0 && (
-                          <span className="text-xs text-muted-foreground">Noch keine Vorlieben hinzugefügt.</span>
+                          <span className="text-typo-body text-muted-foreground">Noch keine Vorlieben hinzugefügt.</span>
                         )}
                         {preferences.map((pref) => (
                           <span
                             key={pref}
                             role="listitem"
-                            className="inline-flex items-center gap-1 rounded-full bg-secondary px-3 py-1 text-xs font-medium"
+                            className="inline-flex items-center gap-1 rounded-full bg-secondary px-3 py-1 text-typo-body font-medium"
                           >
                             {pref}
                             <button
@@ -544,29 +544,24 @@ const CampaignDetail = () => {
             <div className="grid gap-4 lg:grid-cols-12">
               <div className="space-y-4 lg:col-span-7">
                 <Card variant="elevated" className="border border-border/60 shadow-sm">
-                  <CardHeader className="pb-3">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                          <Calendar className="w-4 h-4" aria-hidden="true" />
-                          Übersicht
-                        </span>
-                        <CardTitle className="text-base">Voting & Deadline</CardTitle>
-                      </div>
-                      <CardDescription className="text-xs text-muted-foreground">
-                        Aktueller Stand der Abstimmung
-                      </CardDescription>
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Calendar className="w-5 h-5 text-primary" aria-hidden="true" />
+                      <CardTitle className="font-display text-typo-h2">Voting & Deadline</CardTitle>
                     </div>
+                    <CardDescription className="text-typo-body text-muted-foreground">
+                      Aktueller Stand der Abstimmung
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Voting-Deadline</span>
-                      <span className="font-semibold" aria-label={votingDeadline ? `Deadline am ${formatDeadline(votingDeadline)}` : 'Keine Deadline gesetzt'}>
+                    <div className="flex items-center justify-between">
+                      <span className="text-typo-body text-muted-foreground">Voting-Deadline</span>
+                      <span className="text-typo-h3" aria-label={votingDeadline ? `Deadline am ${formatDeadline(votingDeadline)}` : 'Keine Deadline gesetzt'}>
                         {votingDeadline ? formatDeadline(votingDeadline) : 'Keine Deadline gesetzt'}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Status</span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-typo-body text-muted-foreground">Status</span>
                       <Badge variant={votingClosed ? 'secondary' : 'default'}>
                         {votingDeadline ? (votingClosed ? 'Abgeschlossen' : 'Laufend') : 'Offen'}
                       </Badge>
@@ -579,7 +574,7 @@ const CampaignDetail = () => {
                           className="h-3"
                           aria-label={`Voting-Fortschritt: ${votingProgress ?? 0} Prozent`}
                         />
-                        <div className="flex justify-between text-xs text-muted-foreground" aria-hidden="true">
+                        <div className="flex justify-between text-typo-body text-muted-foreground" aria-hidden="true">
                           <span>Heute</span>
                           <span>{votingProgress ?? 0}%</span>
                           <span>Deadline</span>
@@ -596,14 +591,14 @@ const CampaignDetail = () => {
                 <WallOfFame contributions={campaign.private_contributions} />
                 <div className="space-y-3">
                   <Card ref={qrCardRef} variant="elevated" className="border border-border/60 shadow-sm">
-                    <CardHeader className="text-center pb-2">
+                    <CardHeader className="text-center pb-4">
                       <div className="mb-2">
-                        <Badge variant="outline" className="text-xs font-semibold tracking-widest uppercase">
+                        <Badge variant="outline" className="text-typo-body font-semibold tracking-widest uppercase">
                           Event
                         </Badge>
                       </div>
-                      <CardTitle className="text-xl sm:text-2xl">QR-Code für dein Event</CardTitle>
-                      <CardDescription>
+                      <CardTitle className="font-display text-typo-h2">QR-Code für dein Event</CardTitle>
+                      <CardDescription className="text-typo-body">
                         Teile den Code, damit dein Team direkt zum Event gelangt.
                       </CardDescription>
                     </CardHeader>
@@ -656,8 +651,8 @@ const CampaignDetail = () => {
               <div className="lg:col-span-8">
                 <DateGrid onSubmit={handleAvailability} />
               </div>
-              <aside className="lg:col-span-4 space-y-3 text-sm text-muted-foreground border border-border rounded-2xl p-4 bg-secondary/40" aria-label="Tipps zur Terminfindung">
-                <h3 className="font-semibold text-foreground">Tipps für Terminfindung</h3>
+              <aside className="lg:col-span-4 space-y-3 text-typo-body text-muted-foreground border border-border rounded-2xl p-4 bg-secondary/40" aria-label="Tipps zur Terminfindung">
+                <h3 className="text-typo-h3 text-foreground">Tipps für Terminfindung</h3>
                 <ul className="list-disc pl-4 space-y-1">
                   <li>Wochenenden bevorzugen für Outdoor-Events.</li>
                   <li>Mindestens zwei Slots pro Person anfragen.</li>
@@ -677,7 +672,7 @@ const CampaignDetail = () => {
               <Card>
                 <CardContent className="py-12 text-center">
                   <Loader2 className="w-8 h-8 mx-auto mb-4 text-muted-foreground animate-spin" aria-hidden="true" />
-                  <p className="text-sm text-muted-foreground">Analytics werden geladen...</p>
+                  <p className="text-typo-body text-muted-foreground">Analytics werden geladen...</p>
                 </CardContent>
               </Card>
             )}
@@ -685,17 +680,17 @@ const CampaignDetail = () => {
 
           <TabsContent value="activities" className="space-y-4" role="tabpanel" aria-label="Verfügbare Event-Aktivitäten">
             <Card variant="elevated">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2">
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-2 mb-1">
                   <Calendar className="w-5 h-5 text-primary" aria-hidden="true" />
-                  Verfügbare Events
-                </CardTitle>
-                <CardDescription>Alle Optionen aus allen Regionen mit Filter und Suche.</CardDescription>
+                  <CardTitle className="font-display text-typo-h2">Verfügbare Events</CardTitle>
+                </div>
+                <CardDescription className="text-typo-body">Alle Optionen aus allen Regionen mit Filter und Suche.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   <div className="space-y-1.5">
-                    <Label htmlFor="activitySearch" className="text-sm font-medium">Suche</Label>
+                    <Label htmlFor="activitySearch" className="text-typo-body font-medium">Suche</Label>
                     <Input
                       id="activitySearch"
                       placeholder="Titel, Tags, Region..."
@@ -705,7 +700,7 @@ const CampaignDetail = () => {
                     />
                   </div>
                   <fieldset className="space-y-1.5">
-                    <legend className="text-sm font-medium">Regionen</legend>
+                    <legend className="text-typo-body font-medium">Regionen</legend>
                     <div className="flex flex-wrap gap-2" role="group" aria-label="Regionsfilter">
                       {uniqueRegions.map((regionCode) => (
                         <Button
@@ -727,7 +722,7 @@ const CampaignDetail = () => {
                     </div>
                   </fieldset>
                   <fieldset className="space-y-1.5">
-                    <legend className="text-sm font-medium">Kategorien</legend>
+                    <legend className="text-typo-body font-medium">Kategorien</legend>
                     <div className="flex flex-wrap gap-2" role="group" aria-label="Kategoriefilter">
                       {['Action', 'Food', 'Relax', 'Party'].map((cat) => (
                         <Button
@@ -753,13 +748,13 @@ const CampaignDetail = () => {
                 {activityTabLoading ? (
                   <div className="text-center py-12 rounded-xl border border-border bg-secondary/20" role="status" aria-live="polite">
                     <Loader2 className="w-8 h-8 mx-auto mb-3 text-primary animate-spin" aria-hidden="true" />
-                    <p className="text-sm text-muted-foreground">Lade Events...</p>
+                    <p className="text-typo-body text-muted-foreground">Lade Events...</p>
                   </div>
                 ) : filteredActivities.length === 0 ? (
                   <div className="text-center py-12 rounded-xl border border-border bg-secondary/20">
                     <AlertCircle className="w-12 h-12 mx-auto mb-3 text-muted-foreground" aria-hidden="true" />
-                    <p className="text-sm font-medium">Keine Events gefunden</p>
-                    <p className="text-xs text-muted-foreground mt-1">Versuche andere Filter oder Suchbegriffe.</p>
+                    <p className="text-typo-body font-medium">Keine Events gefunden</p>
+                    <p className="text-typo-body text-muted-foreground mt-1">Versuche andere Filter oder Suchbegriffe.</p>
                   </div>
                 ) : (
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" role="list" aria-label="Event-Optionen">
@@ -800,15 +795,15 @@ const CampaignDetail = () => {
                             <CardContent className="p-4 flex flex-col gap-2 flex-1">
                               <div className="flex items-center justify-between gap-2">
                                 <Badge variant="outline">{option.category}</Badge>
-                                <span className="text-xs text-muted-foreground truncate">{option.location_region}</span>
+                                <span className="text-typo-body text-muted-foreground truncate">{option.location_region}</span>
                               </div>
-                              <h4 className="font-semibold leading-tight line-clamp-2">{option.title}</h4>
-                              <p className="text-xs text-muted-foreground line-clamp-2">
+                              <h4 className="text-typo-h3 leading-tight line-clamp-2">{option.title}</h4>
+                              <p className="text-typo-body text-muted-foreground line-clamp-2">
                                 {option.description || 'Keine Beschreibung vorhanden.'}
                               </p>
-                              <div className="flex items-center justify-between text-sm mt-auto pt-2 border-t border-border/50">
-                                <span className="text-muted-foreground">Preis p.P.</span>
-                                <span className="font-semibold">€{Math.round(option.est_price_pp)}</span>
+                              <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/50">
+                                <span className="text-typo-body text-muted-foreground">Preis p.P.</span>
+                                <span className="text-typo-h3">€{Math.round(option.est_price_pp)}</span>
                               </div>
                             </CardContent>
                           </Card>
@@ -818,7 +813,7 @@ const CampaignDetail = () => {
                   </div>
                 )}
                 {!activityTabLoading && filteredActivities.length > 0 && (
-                  <p className="text-xs text-center text-muted-foreground" aria-live="polite">
+                  <p className="text-typo-body text-center text-muted-foreground" aria-live="polite">
                     {filteredActivities.length} {filteredActivities.length === 1 ? 'Event' : 'Events'} gefunden
                   </p>
                 )}
@@ -830,8 +825,8 @@ const CampaignDetail = () => {
                 {selectedActivity && (
                   <div className="space-y-4">
                     <DialogHeader>
-                      <DialogTitle id="activity-dialog-title">{selectedActivity.title}</DialogTitle>
-                      <DialogDescription id="activity-dialog-description">
+                      <DialogTitle className="font-display text-typo-h2" id="activity-dialog-title">{selectedActivity.title}</DialogTitle>
+                      <DialogDescription className="text-typo-body" id="activity-dialog-description">
                         {selectedActivity.category} • {selectedActivity.location_region}
                       </DialogDescription>
                     </DialogHeader>
@@ -845,23 +840,23 @@ const CampaignDetail = () => {
                         aria-label={`Bild für ${selectedActivity.title}`}
                       />
                     )}
-                    <div className="text-sm space-y-3">
+                    <div className="space-y-3">
                       <div>
-                        <h4 className="font-semibold mb-1">Beschreibung</h4>
-                        <p className="text-muted-foreground">
+                        <h4 className="text-typo-h3 mb-1">Beschreibung</h4>
+                        <p className="text-typo-body text-muted-foreground">
                           {selectedActivity.description || 'Keine Beschreibung vorhanden.'}
                         </p>
                       </div>
                       <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/50">
-                        <span className="text-muted-foreground">Preis pro Person</span>
-                        <span className="text-lg font-bold">€{Math.round(selectedActivity.est_price_pp)}</span>
+                        <span className="text-typo-body text-muted-foreground">Preis pro Person</span>
+                        <span className="text-typo-h3">€{Math.round(selectedActivity.est_price_pp)}</span>
                       </div>
                       {selectedActivity.tags?.length > 0 && (
                         <div>
-                          <h4 className="font-semibold mb-2">Tags</h4>
+                          <h4 className="text-typo-h3 mb-2">Tags</h4>
                           <div className="flex flex-wrap gap-2" role="list" aria-label="Event-Tags">
                             {selectedActivity.tags.map((tag) => (
-                              <Badge key={tag} variant="secondary" className="text-xs" role="listitem">
+                              <Badge key={tag} variant="secondary" className="text-typo-body" role="listitem">
                                 {tag}
                               </Badge>
                             ))}
