@@ -526,11 +526,23 @@ def seed_event_options(session: Session) -> None:
     session.commit()
 
 
+def _ensure_voting_deadline_column() -> None:
+    """Ensure new column exists on sqlite without a full migration system."""
+    if not settings.database_url.startswith("sqlite"):
+        return
+    with engine.begin() as conn:
+        cols = conn.exec_driver_sql("PRAGMA table_info(campaign);").fetchall()
+        names = {c[1] for c in cols}
+        if "voting_deadline" not in names:
+            conn.exec_driver_sql("ALTER TABLE campaign ADD COLUMN voting_deadline TIMESTAMP;")
+
+
 def init_db() -> None:
     """Create database tables. Call this once at startup."""
     from app import models  # noqa: F401 - triggers model registration
 
     SQLModel.metadata.create_all(bind=engine)
+    _ensure_voting_deadline_column()
     with Session(engine) as session:
         seed_event_options(session)
 
