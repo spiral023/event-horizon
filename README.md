@@ -11,9 +11,41 @@ TeamVote ist eine deutsche, mobile-first Web-App für Team-Events: Ideen sammeln
 - Mock-Daten entfernt – Frontend nutzt API (`VITE_API_URL`)
 
 ## Tech Stack
-- Frontend: Vite, React, TypeScript, Tailwind, shadcn-ui, Framer Motion, Zustand, React Router
-- Backend: FastAPI, SQLModel/SQLite
-- Infra: Docker Compose (Backend), optional Cloudflare Pages für das Frontend
+
+### Frontend
+- **Build Tool:** Vite 7
+- **Framework:** React 18 mit TypeScript
+- **Styling:** Tailwind CSS 3, shadcn/ui Komponenten-Bibliothek
+- **State Management:** Zustand mit LocalStorage-Persistierung
+- **Routing:** React Router v6
+- **Data Fetching:** TanStack Query (React Query)
+- **Animation:** Framer Motion
+- **UI-Komponenten:**
+  - Radix UI Primitives (Dialog, Dropdown, Popover, etc.)
+  - Recharts für Analytics-Visualisierung
+  - Embla Carousel
+  - Sonner für Toast-Benachrichtigungen
+- **Formulare:** React Hook Form + Zod-Validierung
+- **QR-Codes:** qrcode.react, @yudiel/react-qr-scanner
+- **Icons:** Lucide React
+- **Utilities:** date-fns, clsx, tailwind-merge, canvas-confetti
+
+### Backend
+- **Framework:** FastAPI 0.115
+- **ASGI Server:** Uvicorn mit Standard-Extras
+- **ORM:** SQLModel 0.0.22
+- **Datenbank:** SQLite 3 (über SQLAlchemy 2.0)
+- **Validierung:** Pydantic 2.9
+- **Konfiguration:** Pydantic Settings (`.env`-Unterstützung)
+- **File Handling:** python-multipart
+
+### Infrastruktur & Deployment
+- **Containerisierung:** Docker, Docker Compose
+- **Reverse Proxy:** Traefik (mit Let's Encrypt TLS)
+- **Deployment-Optionen:**
+  - VPS mit Docker Compose (empfohlen)
+  - Cloudflare Pages (Frontend) + VPS (Backend)
+  - Klassisches Hosting (uvicorn + static files)
 
 ## Schnellstart (lokal)
 ```bash
