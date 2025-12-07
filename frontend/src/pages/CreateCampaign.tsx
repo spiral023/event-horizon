@@ -440,26 +440,6 @@ const CreateCampaign = () => {
                   />
                 </div>
 
-
-                <div className="rounded-xl border border-border p-4 bg-secondary/20 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-col">
-                      <span className="text-xs uppercase text-muted-foreground">Voting-Status</span>
-                      <span className="font-semibold">
-                        {votingDeadline ? `Bis ${votingDeadline}` : 'Keine Deadline gesetzt'}
-                      </span>
-                    </div>
-                    {votingDeadline && votingProgress !== null && (
-                      <span className="text-xs text-muted-foreground">{Math.round(votingProgress)}%</span>
-                    )}
-                  </div>
-                  {votingDeadline ? (
-                    <Progress value={votingProgress ?? 0} />
-                  ) : (
-                    <p className="text-xs text-muted-foreground">Setze eine Deadline, um den Fortschritt zu tracken.</p>
-                  )}
-                </div>
-
                 <div className="space-y-3 rounded-xl border border-border p-4 bg-secondary/30">
                   <div className="flex items-center justify-between">
                     <p className="font-semibold">Geschätztes Gesamtbudget</p>

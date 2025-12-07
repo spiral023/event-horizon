@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Vote, Calendar, BarChart3, Copy, Share2, UserCog } from 'lucide-react';
+import { ArrowLeft, Vote, Calendar, BarChart3, Copy, Share2, UserCog, Plus, X } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toBlob } from 'html-to-image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,7 +16,7 @@ import { WallOfFame } from '@/features/budget/WallOfFame';
 import { ContributionForm } from '@/features/budget/ContributionForm';
 import { DateGrid } from '@/features/scheduling/DateGrid';
 import { TeamMeter, PersonaSummary } from '@/features/analytics/TeamAnalytics';
-import { getCampaign, submitContribution, getTeamAnalytics, getFundingPercentage, submitAvailability, updateCampaign } from '@/services/apiClient';
+import { getCampaign, submitContribution, getTeamAnalytics, getFundingPercentage, submitAvailability } from '@/services/apiClient';
 import { useAppStore } from '@/store/appStore';
 import type { Campaign, TeamAnalytics, Availability } from '@/types/domain';
 import { toast } from 'sonner';
@@ -32,11 +33,10 @@ const CampaignDetail = () => {
   const qrCardRef = useRef<HTMLDivElement>(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const [nameDraft, setNameDraft] = useState('');
-  const [eventName, setEventName] = useState('');
-  const [eventRange, setEventRange] = useState('');
-  const [eventTotal, setEventTotal] = useState<number | ''>('');
-  const [eventCompany, setEventCompany] = useState<number | ''>('');
-  const [eventBudgetPP, setEventBudgetPP] = useState<number | ''>('');
+  const [hobbyInput, setHobbyInput] = useState('');
+  const [hobbies, setHobbies] = useState<string[]>([]);
+  const [preferenceInput, setPreferenceInput] = useState('');
+  const [preferences, setPreferences] = useState<string[]>([]);
   const [savingProfile, setSavingProfile] = useState(false);
 
   useEffect(() => {
@@ -59,22 +59,10 @@ const CampaignDetail = () => {
   }, [id]);
 
   useEffect(() => {
-    if (campaign) {
-      setEventName(campaign.name);
-      setEventRange(campaign.target_date_range);
-      setEventTotal(Number(campaign.total_budget_needed) || 0);
-      setEventCompany(Number(campaign.company_budget_available) || 0);
-      setEventBudgetPP(
-        typeof campaign.budget_per_participant === 'number' && !Number.isNaN(campaign.budget_per_participant)
-          ? Number(campaign.budget_per_participant)
-          : ''
-      );
-    }
-  }, [campaign]);
-
-  useEffect(() => {
     if (user?.name) {
       setNameDraft(user.name);
+      setHobbies(user.hobbies || []);
+      setPreferences(user.history?.liked_categories || []);
     }
   }, [user]);
 
@@ -133,6 +121,22 @@ const CampaignDetail = () => {
       : 'https://event-horizon.sp23.online';
   const eventPath = campaign.status === 'voting' ? `/voting/${campaign.id}` : `/campaign/${campaign.id}`;
   const eventUrl = `${appOrigin}${eventPath}`;
+  const votingDeadline = campaign.voting_deadline ? new Date(campaign.voting_deadline) : null;
+  const votingProgress = votingDeadline
+    ? (() => {
+        const now = Date.now();
+        const start = new Date();
+        start.setHours(0, 0, 0, 0);
+        const startMs = start.getTime();
+        const endMs = votingDeadline.getTime();
+        if (endMs <= startMs) return 100;
+        const ratio = Math.min(1, Math.max(0, (now - startMs) / (endMs - startMs)));
+        return Math.round(ratio * 100);
+      })()
+    : null;
+  const votingClosed = votingDeadline ? Date.now() >= votingDeadline.getTime() : false;
+  const formatDeadline = (date: Date) =>
+    date.toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' });
 
   const copyEventLink = async () => {
     try {
@@ -172,36 +176,16 @@ const CampaignDetail = () => {
   };
 
   const handleProfileSave = async () => {
-    if (!campaign && !user) {
-      setProfileOpen(false);
-      return;
-    }
+    if (!user) return setProfileOpen(false);
     setSavingProfile(true);
     try {
       const trimmedName = nameDraft.trim() || 'Team Member';
-      if (user) {
-        setUser({ ...user, name: trimmedName });
-      }
-
-      const payload: Record<string, unknown> = {};
-      if (campaign) {
-        if (eventName.trim() && eventName.trim() !== campaign.name) payload.name = eventName.trim();
-        if (eventRange.trim() && eventRange.trim() !== campaign.target_date_range) payload.target_date_range = eventRange.trim();
-        if (eventTotal !== '' && eventTotal !== campaign.total_budget_needed) payload.total_budget_needed = Math.max(Number(eventTotal) || 0, 0);
-        if (eventCompany !== '' && eventCompany !== campaign.company_budget_available) payload.company_budget_available = Math.max(Number(eventCompany) || 0, 0);
-        if (
-          eventBudgetPP !== '' &&
-          (campaign.budget_per_participant ?? null) !== Number(eventBudgetPP)
-        ) {
-          payload.budget_per_participant = Math.max(Number(eventBudgetPP) || 0, 0);
-        }
-
-        if (Object.keys(payload).length && campaign.id) {
-          const updated = await updateCampaign(campaign.id, payload);
-          setCampaign(updated);
-        }
-      }
-
+      setUser({
+        ...user,
+        name: trimmedName,
+        hobbies,
+        history: { liked_categories: preferences },
+      });
       toast.success('Profil aktualisiert');
       setProfileOpen(false);
     } catch (error) {
@@ -253,64 +237,101 @@ const CampaignDetail = () => {
                       </p>
                     </div>
 
-                    {campaign && (
-                      <div className="space-y-3 rounded-xl border border-border p-4 bg-secondary/30">
-                        <p className="text-sm font-semibold">Event-Details</p>
-                        <div className="space-y-2">
-                          <Label htmlFor="eventName">Titel</Label>
+                    <div className="space-y-3 rounded-xl border border-border p-4 bg-secondary/30">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold">Hobbys</p>
+                        <div className="flex items-center gap-2">
                           <Input
-                            id="eventName"
-                            value={eventName}
-                            onChange={(e) => setEventName(e.target.value)}
+                            placeholder="z.B. Bowling"
+                            value={hobbyInput}
+                            onChange={(e) => setHobbyInput(e.target.value)}
+                            className="h-9"
                           />
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              const value = hobbyInput.trim();
+                              if (!value) return;
+                              if (!hobbies.includes(value)) setHobbies([...hobbies, value]);
+                              setHobbyInput('');
+                            }}
+                          >
+                            <Plus className="w-4 h-4" />
+                          </Button>
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="eventRange">Zeitraum</Label>
-                          <Input
-                            id="eventRange"
-                            value={eventRange}
-                            onChange={(e) => setEventRange(e.target.value)}
-                            placeholder="z.B. KW 30 - 32"
-                          />
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div className="space-y-1">
-                            <Label htmlFor="eventTotal">Gesamtbudget</Label>
-                            <Input
-                              id="eventTotal"
-                              type="number"
-                              min={0}
-                              value={eventTotal}
-                              onChange={(e) => setEventTotal(e.target.value === '' ? '' : Number(e.target.value))}
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <Label htmlFor="eventCompany">Firmenanteil</Label>
-                            <Input
-                              id="eventCompany"
-                              type="number"
-                              min={0}
-                              value={eventCompany}
-                              onChange={(e) => setEventCompany(e.target.value === '' ? '' : Number(e.target.value))}
-                            />
-                          </div>
-                        </div>
-                        <div className="space-y-1">
-                          <Label htmlFor="eventBudgetPP">Budget pro Person</Label>
-                          <Input
-                            id="eventBudgetPP"
-                            type="number"
-                            min={0}
-                            value={eventBudgetPP}
-                            onChange={(e) => setEventBudgetPP(e.target.value === '' ? '' : Number(e.target.value))}
-                            placeholder="optional"
-                          />
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          Aenderungen werden sofort gespeichert, damit dein Team die aktuellsten Infos sieht.
-                        </p>
                       </div>
-                    )}
+                      <div className="flex flex-wrap gap-2">
+                        {hobbies.length === 0 && (
+                          <span className="text-xs text-muted-foreground">Noch keine Hobbys hinzugefuegt.</span>
+                        )}
+                        {hobbies.map((hobby) => (
+                          <span
+                            key={hobby}
+                            className="inline-flex items-center gap-1 rounded-full bg-secondary px-3 py-1 text-xs font-medium"
+                          >
+                            {hobby}
+                            <button
+                              type="button"
+                              onClick={() => setHobbies((prev) => prev.filter((h) => h !== hobby))}
+                              className="text-muted-foreground hover:text-foreground"
+                              aria-label={`${hobby} entfernen`}
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-3 rounded-xl border border-border p-4 bg-secondary/30">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold">Vorlieben</p>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            placeholder="z.B. vegetarisch"
+                            value={preferenceInput}
+                            onChange={(e) => setPreferenceInput(e.target.value)}
+                            className="h-9"
+                          />
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              const value = preferenceInput.trim();
+                              if (!value) return;
+                              if (!preferences.includes(value)) setPreferences([...preferences, value]);
+                              setPreferenceInput('');
+                            }}
+                          >
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {preferences.length === 0 && (
+                          <span className="text-xs text-muted-foreground">Noch keine Vorlieben hinzugefuegt.</span>
+                        )}
+                        {preferences.map((pref) => (
+                          <span
+                            key={pref}
+                            className="inline-flex items-center gap-1 rounded-full bg-secondary px-3 py-1 text-xs font-medium"
+                          >
+                            {pref}
+                            <button
+                              type="button"
+                              onClick={() => setPreferences((prev) => prev.filter((p) => p !== pref))}
+                              className="text-muted-foreground hover:text-foreground"
+                              aria-label={`${pref} entfernen`}
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
                   </div>
 
                   <DialogFooter className="pt-2">
@@ -352,6 +373,36 @@ const CampaignDetail = () => {
           <TabsContent value="budget" className="space-y-4">
             <div className="grid gap-4 lg:grid-cols-12">
               <div className="space-y-4 lg:col-span-7">
+                <Card variant="elevated" className="border border-border/60 shadow-sm">
+                  <CardHeader className="pb-3">
+                    <CardTitle>Übersicht</CardTitle>
+                    <CardDescription>
+                      Voting-Status und Deadline für diese Kampagne.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Voting-Deadline</span>
+                      <span className="font-semibold">
+                        {votingDeadline ? formatDeadline(votingDeadline) : 'Keine Deadline gesetzt'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Status</span>
+                      <span className={`font-semibold ${votingClosed ? 'text-muted-foreground' : 'text-primary'}`}>
+                        {votingDeadline ? (votingClosed ? 'Abgeschlossen' : 'Laufend') : 'Offen'}
+                      </span>
+                    </div>
+                    {votingDeadline && (
+                      <div className="space-y-1">
+                        <Progress value={votingProgress ?? 0} />
+                        <p className="text-xs text-muted-foreground text-right">
+                          {votingProgress ?? 0}% bis zur Deadline
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
                 <BudgetOverview campaign={campaign} />
                 <ContributionForm onSubmit={handleContribution} isSubmitting={submitting} />
               </div>
