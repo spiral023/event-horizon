@@ -378,7 +378,7 @@ const CampaignDetail = () => {
 
       <main className="container max-w-5xl mx-auto px-4 py-8">
         <Tabs defaultValue="budget" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsList className="grid w-full grid-cols-4 mb-6">
             <TabsTrigger value="budget">Budget</TabsTrigger>
             <TabsTrigger value="schedule">
               <Calendar className="w-4 h-4 mr-1" />
