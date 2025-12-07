@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Coins, PiggyBank, Sparkles, Wand2 } from 'lucide-react';
-import type { EventOption } from '@/types/domain';
+import { ArrowLeft, Coins, PiggyBank, Sparkles, Wand2, Plus, X } from 'lucide-react';
+import type { EventOption, StretchGoal } from '@/types/domain';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -14,8 +14,14 @@ import { createCampaign } from '@/services/apiClient';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAppStore } from '@/store/appStore';
+import { generateId } from '@/utils/storage';
 
 type RegionValue = EventOption['location_region'];
+type StretchGoalDraft = {
+  id: string;
+  reward_description: string;
+  amount_threshold: number;
+};
 
 const regionOptions: { value: RegionValue; label: string }[] = [
   { value: 'OOE', label: 'Oberösterreich' },
@@ -50,6 +56,7 @@ const CreateCampaign = () => {
   const [budgetPerParticipant, setBudgetPerParticipant] = useState<number | undefined>(50);
   const [estimatedParticipants, setEstimatedParticipants] = useState(10);
   const [region, setRegion] = useState<RegionValue>(regionOptions[0].value);
+  const [stretchGoals, setStretchGoals] = useState<StretchGoalDraft[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -125,6 +132,15 @@ const CreateCampaign = () => {
     e.preventDefault();
     if (!deptCode) return;
 
+    const normalizedStretchGoals: StretchGoal[] = stretchGoals
+      .map((goal) => ({
+        ...goal,
+        reward_description: goal.reward_description.trim(),
+        amount_threshold: Math.max(goal.amount_threshold, 0),
+        unlocked: false,
+      }))
+      .filter((goal) => goal.reward_description || goal.amount_threshold > 0);
+
     setLoading(true);
     try {
       const campaign = await createCampaign({
@@ -136,6 +152,7 @@ const CreateCampaign = () => {
         budget_per_participant: budgetMode === 'perParticipant' ? budgetPerParticipant : undefined,
         external_sponsors: 0,
         region,
+        stretch_goals: normalizedStretchGoals,
       });
 
       setCurrentCampaign(campaign.id);
@@ -417,6 +434,103 @@ const CreateCampaign = () => {
                       </Button>
                     ))}
                   </div>
+                </div>
+
+                <div className="space-y-3 rounded-xl border border-border p-4 bg-secondary/30">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <Label>Stretch Goals (optional)</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Bis zu 3 Ziele für Extras oder Upgrades. Lege Namen und Zielsatz fest.
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={stretchGoals.length >= 3}
+                      onClick={() =>
+                        setStretchGoals((prev) => {
+                          if (prev.length >= 3) return prev;
+                          return [
+                            ...prev,
+                            {
+                              id: generateId(),
+                              reward_description: '',
+                              amount_threshold: Math.max(Math.round(totalBudget + 250), 0),
+                            },
+                          ];
+                        })
+                      }
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      Stretch Goal hinzufügen
+                    </Button>
+                  </div>
+
+                  {stretchGoals.length === 0 ? (
+                    <div className="text-xs text-muted-foreground border border-dashed border-border rounded-lg p-3 bg-background/40">
+                      Noch keine Stretch Goals. Klicke auf &quot;Stretch Goal hinzufügen&quot;, um das erste Ziel
+                      anzulegen.
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {stretchGoals.map((goal, index) => (
+                        <div key={goal.id} className="rounded-lg border border-border bg-background/50 p-3 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-semibold">Stretch Goal {index + 1}</p>
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              onClick={() =>
+                                setStretchGoals((prev) => prev.filter((item) => item.id !== goal.id))
+                              }
+                              aria-label="Stretch Goal entfernen"
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                          <div className="grid gap-3 md:grid-cols-2">
+                            <div className="space-y-1">
+                              <Label>Bezeichnung / Benefit</Label>
+                              <Input
+                                value={goal.reward_description}
+                                placeholder="z.B. Upgrade auf Live-DJ + Cocktails"
+                                onChange={(e) =>
+                                  setStretchGoals((prev) =>
+                                    prev.map((item) =>
+                                      item.id === goal.id
+                                        ? { ...item, reward_description: e.target.value }
+                                        : item
+                                    )
+                                  )
+                                }
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label>Zielsatz (EUR)</Label>
+                              <Input
+                                type="number"
+                                min={0}
+                                step="any"
+                                value={goal.amount_threshold}
+                                onChange={(e) =>
+                                  setStretchGoals((prev) =>
+                                    prev.map((item) =>
+                                      item.id === goal.id
+                                        ? { ...item, amount_threshold: Number(e.target.value) || 0 }
+                                        : item
+                                    )
+                                  )
+                                }
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <Button
