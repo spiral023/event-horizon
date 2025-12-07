@@ -39,7 +39,7 @@ const fallbackEventOptions: EventOption[] = [
     accessibility_flags: ['vegan', 'wheelchair'],
     weather_dependent: false,
     image_url: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600',
-    description: 'Kulinarisches Erlebnis auf höchstem Niveau mit regionalen Spezialitäten.',
+    description: 'Kulinarisches Erlebnis auf h?chstem Niveau mit regionalen Spezialit?ten.',
   },
   {
     id: 'evt-3',
@@ -65,7 +65,7 @@ const fallbackEventOptions: EventOption[] = [
     accessibility_flags: [],
     weather_dependent: false,
     image_url: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600',
-    description: 'Legendäre Club-Nacht mit DJ-Sets und VIP-Bereich für das Team.',
+    description: 'Legend?re Club-Nacht mit DJ-Sets und VIP-Bereich f?r das Team.',
   },
   {
     id: 'evt-5',
@@ -91,7 +91,7 @@ const fallbackEventOptions: EventOption[] = [
     accessibility_flags: ['wheelchair'],
     weather_dependent: true,
     image_url: 'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=600',
-    description: 'Weinverkostung und Kellerführung in einem der schönsten Weingebiete Österreichs.',
+    description: 'Weinverkostung und Kellerf?hrung in einem der sch?nsten Weingebiete ?sterreichs.',
   },
   {
     id: 'evt-8',
@@ -104,11 +104,11 @@ const fallbackEventOptions: EventOption[] = [
     accessibility_flags: ['wheelchair'],
     weather_dependent: false,
     image_url: 'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=600',
-    description: 'Kulinarische Stadtführung durch Graz mit Verkostungen.',
+    description: 'Kulinarische Stadtf?hrung durch Graz mit Verkostungen.',
   },
   {
     id: 'evt-9',
-    title: 'Weinwandern Südsteiermark',
+    title: 'Weinwandern S?dsteiermark',
     category: 'Relax',
     tags: ['outdoor', 'wine', 'nature'],
     location_region: 'Stmk',
@@ -117,11 +117,11 @@ const fallbackEventOptions: EventOption[] = [
     accessibility_flags: [],
     weather_dependent: true,
     image_url: 'https://images.unsplash.com/photo-1514369118554-e20d93546b30?w=600',
-    description: 'Weinberge, Jausen und Panoramablicke in der Südsteiermark.',
+    description: 'Weinberge, Jausen und Panoramablicke in der S?dsteiermark.',
   },
   {
     id: 'evt-10',
-    title: 'Panorama-Dinner Mönchsberg',
+    title: 'Panorama-Dinner M?nchsberg',
     category: 'Food',
     tags: ['elegant', 'view', 'city'],
     location_region: 'Sbg',
@@ -130,7 +130,7 @@ const fallbackEventOptions: EventOption[] = [
     accessibility_flags: ['wheelchair'],
     weather_dependent: false,
     image_url: 'https://images.unsplash.com/photo-1521017432531-fbd92d768814?w=600',
-    description: 'Privates Dinner mit Stadtblick und regionalem Degustationsmenü.',
+    description: 'Privates Dinner mit Stadtblick und regionalem Degustationsmen?.',
   },
   {
     id: 'evt-11',
@@ -143,11 +143,11 @@ const fallbackEventOptions: EventOption[] = [
     accessibility_flags: [],
     weather_dependent: true,
     image_url: 'https://images.unsplash.com/photo-1508974239320-0a029497e820?w=600',
-    description: 'Geführte E-MTB Tour mit See-Stopps und Almjause.',
+    description: 'Gef?hrte E-MTB Tour mit See-Stopps und Almjause.',
   },
   {
     id: 'evt-12',
-    title: 'Wörthersee Sunset Cruise',
+    title: 'W?rthersee Sunset Cruise',
     category: 'Relax',
     tags: ['boat', 'sunset', 'chill'],
     location_region: 'Ktn',
@@ -156,7 +156,7 @@ const fallbackEventOptions: EventOption[] = [
     accessibility_flags: [],
     weather_dependent: true,
     image_url: 'https://images.unsplash.com/photo-1511497584788-876760111969?w=600',
-    description: 'Afterwork-Bootstour mit Drinks und Musik am Wörthersee.',
+    description: 'Afterwork-Bootstour mit Drinks und Musik am W?rthersee.',
   },
   {
     id: 'evt-13',
@@ -195,11 +195,11 @@ const fallbackEventOptions: EventOption[] = [
     accessibility_flags: [],
     weather_dependent: true,
     image_url: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=600',
-    description: 'Rodeln, Zipline und Glühwein-Stopps im Stubaital.',
+    description: 'Rodeln, Zipline und Gl?hwein-Stopps im Stubaital.',
   },
   {
     id: 'mystery-1',
-            title: 'Überraschungsevent',
+    title: '?berraschungsevent',
     category: 'Action',
     tags: ['mystery', 'surprise', 'adventure'],
     location_region: 'OOE',
@@ -207,7 +207,7 @@ const fallbackEventOptions: EventOption[] = [
     accessibility_flags: [],
     weather_dependent: false,
     is_mystery: true,
-    description: 'Kategorie: Action – Das Team erfährt erst am Eventtag, was passiert!',
+    description: 'Kategorie: Action ? Das Team erf?hrt erst am Eventtag, was passiert!',
   },
   {
     id: 'evt-7',
@@ -220,7 +220,31 @@ const fallbackEventOptions: EventOption[] = [
     accessibility_flags: ['wheelchair'],
     weather_dependent: false,
     image_url: 'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=600',
-    description: 'Knifflige Rätsel lösen und gemeinsam aus dem Raum entkommen.',
+    description: 'Knifflige R?tsel l?sen und gemeinsam aus dem Raum entkommen.',
+  },
+];
+
+const fallbackStretchGoals: StretchGoal[] = [
+  {
+    id: 'sg-1',
+    amount_threshold: 100,
+    reward_description: 'Event finanziert! ??',
+    unlocked: false,
+    icon: '??',
+  },
+  {
+    id: 'sg-2',
+    amount_threshold: 110,
+    reward_description: 'Erste Runde Getr?nke geht aufs Haus! ??',
+    unlocked: false,
+    icon: '??',
+  },
+  {
+    id: 'sg-3',
+    amount_threshold: 125,
+    reward_description: 'Upgrade auf 4-Sterne-Hotel! ??',
+    unlocked: false,
+    icon: '??',
   },
 ];
 
