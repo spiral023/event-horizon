@@ -342,6 +342,11 @@ export const getEventOptions = async (region: RegionCode): Promise<EventOption[]
   return dedupeEventOptions(fromApi);
 };
 
+export const getAllEventOptions = async (): Promise<EventOption[]> => {
+  const fromApi = await safeGetEventOptions();
+  return dedupeEventOptions(fromApi);
+};
+
 export const submitVotes = async (campaignId: string, votes: Vote[]): Promise<ApiMessage> => {
   const sessionId = ensureSessionId();
   return request<ApiMessage>(`/campaigns/${campaignId}/votes?session_id=${sessionId}`, {

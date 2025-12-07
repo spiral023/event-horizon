@@ -16,9 +16,9 @@ import { WallOfFame } from '@/features/budget/WallOfFame';
 import { ContributionForm } from '@/features/budget/ContributionForm';
 import { DateGrid } from '@/features/scheduling/DateGrid';
 import { TeamMeter, PersonaSummary } from '@/features/analytics/TeamAnalytics';
-import { getCampaign, submitContribution, getTeamAnalytics, getFundingPercentage, submitAvailability } from '@/services/apiClient';
+import { getCampaign, submitContribution, getTeamAnalytics, getFundingPercentage, submitAvailability, getAllEventOptions } from '@/services/apiClient';
 import { useAppStore } from '@/store/appStore';
-import type { Campaign, TeamAnalytics, Availability } from '@/types/domain';
+import type { Campaign, TeamAnalytics, Availability, EventOption } from '@/types/domain';
 import { toast } from 'sonner';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
@@ -38,6 +38,12 @@ const CampaignDetail = () => {
   const [preferenceInput, setPreferenceInput] = useState('');
   const [preferences, setPreferences] = useState<string[]>([]);
   const [savingProfile, setSavingProfile] = useState(false);
+  const [activityTabLoading, setActivityTabLoading] = useState(false);
+  const [activityOptions, setActivityOptions] = useState<EventOption[]>([]);
+  const [activitySearch, setActivitySearch] = useState('');
+  const [activityRegionFilter, setActivityRegionFilter] = useState<string[]>([]);
+  const [activityCategoryFilter, setActivityCategoryFilter] = useState<string[]>([]);
+  const [selectedActivity, setSelectedActivity] = useState<EventOption | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -57,6 +63,20 @@ const CampaignDetail = () => {
     };
     fetchData();
   }, [id]);
+  useEffect(() => {
+    const loadActivities = async () => {
+      setActivityTabLoading(true);
+      try {
+        const options = await getAllEventOptions();
+        setActivityOptions(options);
+      } catch (error) {
+        console.error('Failed to fetch activities', error);
+      } finally {
+        setActivityTabLoading(false);
+      }
+    };
+    loadActivities();
+  }, []);
 
   useEffect(() => {
     if (user?.name) {
@@ -368,6 +388,10 @@ const CampaignDetail = () => {
               <BarChart3 className="w-4 h-4 mr-1" />
               Insights
             </TabsTrigger>
+            <TabsTrigger value="activities">
+              <Calendar className="w-4 h-4 mr-1" />
+              Aktivitaeten
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="budget" className="space-y-4">
@@ -484,6 +508,147 @@ const CampaignDetail = () => {
                 <TeamMeter analytics={analytics} />
               </>
             )}
+          </TabsContent>
+
+          <TabsContent value="activities" className="space-y-4">
+            <Card variant="elevated">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-primary" />
+                  Verfuegbare Events
+                </CardTitle>
+                <CardDescription>Alle Optionen aus allen Regionen mit Filter und Suche.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-3 md:grid-cols-3">
+                  <div className="space-y-1">
+                    <Label className="text-sm text-muted-foreground">Suche</Label>
+                    <Input
+                      placeholder="Titel, Tags, Region..."
+                      value={activitySearch}
+                      onChange={(e) => setActivitySearch(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-sm text-muted-foreground">Regionen</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {Array.from(new Set(activityOptions.map((o) => o.location_region))).map((regionCode) => (
+                        <Button
+                          key={regionCode}
+                          type="button"
+                          size="sm"
+                          variant={activityRegionFilter.includes(regionCode) ? 'default' : 'outline'}
+                          onClick={() =>
+                            setActivityRegionFilter((prev) =>
+                              prev.includes(regionCode) ? prev.filter((r) => r !== regionCode) : [...prev, regionCode]
+                            )
+                          }
+                        >
+                          {regionCode}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-sm text-muted-foreground">Kategorien</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {['Action', 'Food', 'Relax', 'Party'].map((cat) => (
+                        <Button
+                          key={cat}
+                          type="button"
+                          size="sm"
+                          variant={activityCategoryFilter.includes(cat) ? 'default' : 'outline'}
+                          onClick={() =>
+                            setActivityCategoryFilter((prev) =>
+                              prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+                            )
+                          }
+                        >
+                          {cat}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-border overflow-hidden">
+                  <div className="max-h-[520px] overflow-auto">
+                    <table className="min-w-full text-sm">
+                      <thead className="bg-secondary/40 text-muted-foreground sticky top-0">
+                        <tr className="text-left">
+                          <th className="p-3">Titel</th>
+                          <th className="p-3">Kategorie</th>
+                          <th className="p-3">Region</th>
+                          <th className="p-3 text-right">Preis p.P.</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {activityTabLoading ? (
+                          <tr>
+                            <td colSpan={4} className="p-4 text-center text-xs text-muted-foreground">
+                              Lade Events...
+                            </td>
+                          </tr>
+                        ) : (
+                          activityOptions
+                            .filter((opt) => {
+                              const matchesSearch =
+                                opt.title.toLowerCase().includes(activitySearch.toLowerCase()) ||
+                                opt.tags.join(' ').toLowerCase().includes(activitySearch.toLowerCase()) ||
+                                opt.location_region.toLowerCase().includes(activitySearch.toLowerCase());
+                              const matchesRegion =
+                                activityRegionFilter.length === 0 || activityRegionFilter.includes(opt.location_region);
+                              const matchesCategory =
+                                activityCategoryFilter.length === 0 || activityCategoryFilter.includes(opt.category);
+                              return matchesSearch && matchesRegion && matchesCategory;
+                            })
+                            .map((option) => (
+                              <tr
+                                key={option.id}
+                                className="border-t border-border/60 hover:bg-secondary/30 cursor-pointer"
+                                onClick={() => setSelectedActivity(option)}
+                              >
+                                <td className="p-3 font-medium">{option.title}</td>
+                                <td className="p-3">{option.category}</td>
+                                <td className="p-3">{option.location_region}</td>
+                                <td className="p-3 text-right">EUR {Math.round(option.est_price_pp)}</td>
+                              </tr>
+                            ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Dialog open={!!selectedActivity} onOpenChange={(open) => !open && setSelectedActivity(null)}>
+              <DialogContent className="sm:max-w-lg">
+                {selectedActivity && (
+                  <div className="space-y-3">
+                    <DialogHeader>
+                      <DialogTitle>{selectedActivity.title}</DialogTitle>
+                      <DialogDescription>
+                        {selectedActivity.category} • {selectedActivity.location_region}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="text-sm text-muted-foreground space-y-2">
+                      <p>{selectedActivity.description || 'Keine Beschreibung vorhanden.'}</p>
+                      <p>Preis p.P.: EUR {Math.round(selectedActivity.est_price_pp)}</p>
+                      {selectedActivity.tags?.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {selectedActivity.tags.map((tag) => (
+                            <span key={tag} className="px-2 py-1 text-xs rounded-full bg-secondary">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
           </TabsContent>
         </Tabs>
       </main>
