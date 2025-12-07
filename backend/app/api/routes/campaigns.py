@@ -122,6 +122,34 @@ def create_campaign(
     return hydrate_campaign(session, campaign)
 
 
+@router.delete("/{campaign_id}", response_model=ApiMessage, status_code=status.HTTP_200_OK)
+def delete_campaign(
+    campaign_id: str,
+    dept_code: str = Query(..., description="Department code of the campaign owner"),
+    session: Session = Depends(get_session),
+) -> ApiMessage:
+    """
+    Delete a campaign and all related data.
+
+    Requires the matching department code as a lightweight guard so only the creator's
+    department can remove its campaigns.
+    """
+    campaign = session.get(Campaign, campaign_id)
+    if not campaign:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found")
+    if campaign.dept_code != dept_code:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Department mismatch")
+
+    session.exec(delete(CampaignEventOption).where(CampaignEventOption.campaign_id == campaign_id))
+    session.exec(delete(StretchGoal).where(StretchGoal.campaign_id == campaign_id))
+    session.exec(delete(Vote).where(Vote.campaign_id == campaign_id))
+    session.exec(delete(Availability).where(Availability.campaign_id == campaign_id))
+    session.exec(delete(PrivateContribution).where(PrivateContribution.campaign_id == campaign_id))
+    session.exec(delete(Campaign).where(Campaign.id == campaign_id))
+    session.commit()
+    return ApiMessage(message="Campaign deleted")
+
+
 @router.put("/{campaign_id}", response_model=CampaignRead, status_code=status.HTTP_200_OK)
 def update_campaign(
     campaign_id: str,

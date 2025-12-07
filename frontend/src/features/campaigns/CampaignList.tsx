@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Plus, Calendar, Users, Vote, TrendingUp, ChevronRight } from 'lucide-react';
+import { Plus, Calendar, Users, Vote, TrendingUp, ChevronRight, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useAppStore } from '@/store/appStore';
-import { getCampaigns, getFundingPercentage } from '@/services/apiClient';
+import { deleteCampaign, getCampaigns, getFundingPercentage } from '@/services/apiClient';
 import type { Campaign } from '@/types/domain';
+import { toast } from 'sonner';
 
 const statusLabels: Record<Campaign['status'], string> = {
   voting: 'Abstimmung läuft',
@@ -24,6 +25,7 @@ const statusVariants: Record<Campaign['status'], 'default' | 'warning' | 'succes
 
 export const CampaignList = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const { deptCode, setCurrentCampaign } = useAppStore();
   const navigate = useNavigate();
@@ -61,6 +63,24 @@ export const CampaignList = () => {
     event.stopPropagation();
     setCurrentCampaign(campaign.id);
     navigate(`/campaign/${campaign.id}`);
+  };
+
+  const handleDelete = async (event: React.MouseEvent, campaign: Campaign) => {
+    event.stopPropagation();
+    if (!deptCode) return;
+    const confirmed = window.confirm(`Event "${campaign.name}" wirklich l\u00f6schen?`);
+    if (!confirmed) return;
+    try {
+      setDeletingId(campaign.id);
+      await deleteCampaign(campaign.id, deptCode);
+      setCampaigns((prev) => prev.filter((c) => c.id !== campaign.id));
+      toast.success('Event gel\u00f6scht');
+    } catch (error) {
+      console.error('Failed to delete campaign', error);
+      toast.error('Event konnte nicht gel\u00f6scht werden');
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   if (loading) {
@@ -134,9 +154,22 @@ export const CampaignList = () => {
                           {campaign.target_date_range}
                         </p>
                       </div>
-                      <Badge variant={statusVariants[campaign.status]}>
-                        {statusLabels[campaign.status]}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={statusVariants[campaign.status]}>
+                          {statusLabels[campaign.status]}
+                        </Badge>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:text-destructive"
+                          aria-label={`Event ${campaign.name} l\u00f6schen`}
+                          onClick={(e) => handleDelete(e, campaign)}
+                          disabled={deletingId === campaign.id}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent>

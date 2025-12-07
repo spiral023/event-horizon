@@ -1,7 +1,25 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Vote, Calendar, BarChart3, Copy, Share2, UserCog, Plus, X, Loader2, AlertCircle } from 'lucide-react';
+import {
+  ArrowLeft,
+  Vote,
+  Calendar,
+  BarChart3,
+  Copy,
+  Share2,
+  UserCog,
+  Plus,
+  X,
+  Loader2,
+  AlertCircle,
+  MapPin,
+  Users,
+  CloudRain,
+  SunSnow,
+  ShieldCheck,
+  HelpCircle,
+} from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toBlob } from 'html-to-image';
 import { Button } from '@/components/ui/button';
@@ -47,6 +65,10 @@ const CampaignDetail = () => {
   const [activitySearch, setActivitySearch] = useState('');
   const [activityRegionFilter, setActivityRegionFilter] = useState<string[]>([]);
   const [activityCategoryFilter, setActivityCategoryFilter] = useState<string[]>([]);
+  const [activityTagFilter, setActivityTagFilter] = useState<string[]>([]);
+  const [activityWeatherFilter, setActivityWeatherFilter] = useState<'all' | 'weather' | 'indoor'>('all');
+  const [activitySeasonFilter, setActivitySeasonFilter] = useState<'all' | 'summer' | 'winter'>('all');
+  const [activityPriceRange, setActivityPriceRange] = useState<[number, number]>([0, 0]);
   const [selectedActivity, setSelectedActivity] = useState<EventOption | null>(null);
 
   useEffect(() => {
@@ -230,21 +252,85 @@ const CampaignDetail = () => {
     [activityOptions]
   );
 
+  const uniqueTags = useMemo(
+    () => Array.from(new Set(activityOptions.flatMap((o) => o.tags || []))).sort(),
+    [activityOptions]
+  );
+
+  const priceBounds = useMemo(() => {
+    if (!activityOptions.length) return { min: 0, max: 0 };
+    const prices = activityOptions.map((o) => Number(o.est_price_pp) || 0);
+    return { min: Math.min(...prices), max: Math.max(...prices) };
+  }, [activityOptions]);
+
+  useEffect(() => {
+    if (priceBounds.max > 0) {
+      setActivityPriceRange([priceBounds.min, priceBounds.max]);
+    }
+  }, [priceBounds.min, priceBounds.max]);
+
+  const formatSeason = useCallback((season?: EventOption['season']) => {
+    if (season === 'summer') return 'Sommer';
+    if (season === 'winter') return 'Winter';
+    return 'Ganzjährig';
+  }, []);
+
+  const accessibilityLabel = useCallback((flag: EventOption['accessibility_flags'][number]) => {
+    if (flag === 'wheelchair') return 'Rollstuhl';
+    if (flag === 'vegan') return 'Vegan';
+    if (flag === 'pregnant_friendly') return 'Schwangerschaftsfreundlich';
+    return flag;
+  }, []);
+
   // Memoize filtered activities to avoid recalculating on every render
   const filteredActivities = useMemo(() => {
     return activityOptions.filter((opt) => {
-      const term = activitySearch.toLowerCase();
+      const term = activitySearch.trim().toLowerCase();
+      const description = (opt.description || '').toLowerCase();
+      const [minPrice, maxPrice] = activityPriceRange;
       const matchesSearch =
         opt.title.toLowerCase().includes(term) ||
         opt.tags.join(' ').toLowerCase().includes(term) ||
-        opt.location_region.toLowerCase().includes(term);
+        opt.location_region.toLowerCase().includes(term) ||
+        description.includes(term);
       const matchesRegion =
         activityRegionFilter.length === 0 || activityRegionFilter.includes(opt.location_region);
       const matchesCategory =
         activityCategoryFilter.length === 0 || activityCategoryFilter.includes(opt.category);
-      return matchesSearch && matchesRegion && matchesCategory;
+      const matchesTags =
+        activityTagFilter.length === 0 || opt.tags.some((tag) => activityTagFilter.includes(tag));
+      const matchesWeather =
+        activityWeatherFilter === 'all' ||
+        (activityWeatherFilter === 'weather' && opt.weather_dependent) ||
+        (activityWeatherFilter === 'indoor' && !opt.weather_dependent);
+      const matchesSeason =
+        activitySeasonFilter === 'all' ||
+        opt.season === activitySeasonFilter ||
+        (!opt.season && activitySeasonFilter === 'all') ||
+        (activitySeasonFilter === 'summer' && opt.season === 'all_year') ||
+        (activitySeasonFilter === 'winter' && opt.season === 'all_year');
+      const price = Number(opt.est_price_pp) || 0;
+      const matchesPrice = price >= minPrice && price <= maxPrice;
+      return (
+        matchesSearch &&
+        matchesRegion &&
+        matchesCategory &&
+        matchesTags &&
+        matchesWeather &&
+        matchesSeason &&
+        matchesPrice
+      );
     });
-  }, [activityOptions, activitySearch, activityRegionFilter, activityCategoryFilter]);
+  }, [
+    activityOptions,
+    activitySearch,
+    activityRegionFilter,
+    activityCategoryFilter,
+    activityTagFilter,
+    activityWeatherFilter,
+    activitySeasonFilter,
+    activityPriceRange,
+  ]);
 
   // Conditional returns AFTER all hooks
   if (loading) {
@@ -680,11 +766,11 @@ const CampaignDetail = () => {
 
           <TabsContent value="activities" className="space-y-4" role="tabpanel" aria-label="Verfügbare Event-Aktivitäten">
             <Card variant="elevated">
-              <CardHeader className="pb-4">
-                <div className="flex items-center gap-2 mb-1">
-                  <Calendar className="w-5 h-5 text-primary" aria-hidden="true" />
-                  <CardTitle className="font-display text-typo-h2">Verfügbare Events</CardTitle>
-                </div>
+                <CardHeader className="pb-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Calendar className="w-5 h-5 text-primary" aria-hidden="true" />
+                    <CardTitle className="font-display text-typo-h2">Verfügbare Events</CardTitle>
+                  </div>
                 <CardDescription className="text-typo-body">Alle Optionen aus allen Regionen mit Filter und Suche.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -693,7 +779,7 @@ const CampaignDetail = () => {
                     <Label htmlFor="activitySearch" className="text-typo-body font-medium">Suche</Label>
                     <Input
                       id="activitySearch"
-                      placeholder="Titel, Tags, Region..."
+                      placeholder="Titel, Tags, Region, Beschreibung..."
                       value={activitySearch}
                       onChange={(e) => setActivitySearch(e.target.value)}
                       aria-label="Nach Aktivitäten suchen"
@@ -722,25 +808,117 @@ const CampaignDetail = () => {
                     </div>
                   </fieldset>
                   <fieldset className="space-y-1.5">
-                    <legend className="text-typo-body font-medium">Kategorien</legend>
-                    <div className="flex flex-wrap gap-2" role="group" aria-label="Kategoriefilter">
-                      {['Action', 'Food', 'Relax', 'Party'].map((cat) => (
+                    <legend className="text-typo-body font-medium">Tags</legend>
+                    <div className="flex flex-wrap gap-2" role="group" aria-label="Tagfilter">
+                      {uniqueTags.map((tag) => (
                         <Button
-                          key={cat}
+                          key={tag}
                           type="button"
                           size="sm"
-                          variant={activityCategoryFilter.includes(cat) ? 'default' : 'outline'}
+                          variant={activityTagFilter.includes(tag) ? 'default' : 'outline'}
                           onClick={() =>
-                            setActivityCategoryFilter((prev) =>
-                              prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+                            setActivityTagFilter((prev) =>
+                              prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
                             )
                           }
-                          aria-pressed={activityCategoryFilter.includes(cat)}
-                          aria-label={`Kategorie ${cat} ${activityCategoryFilter.includes(cat) ? 'abwählen' : 'auswählen'}`}
+                          aria-pressed={activityTagFilter.includes(tag)}
+                          aria-label={`Tag ${tag} ${activityTagFilter.includes(tag) ? 'abwählen' : 'auswählen'}`}
                         >
-                          {cat}
+                          {tag}
                         </Button>
                       ))}
+                    </div>
+                  </fieldset>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  <fieldset className="space-y-1.5">
+                    <legend className="text-typo-body font-medium">Wetter</legend>
+                    <div className="flex flex-wrap gap-2" role="group" aria-label="Wetterabhängigkeit">
+                      {[
+                        { key: 'all', label: 'Alle' },
+                        { key: 'weather', label: 'Wetterabhängig' },
+                        { key: 'indoor', label: 'Allwetter / Indoor' },
+                      ].map((opt) => (
+                        <Button
+                          key={opt.key}
+                          type="button"
+                          size="sm"
+                          variant={activityWeatherFilter === opt.key ? 'default' : 'outline'}
+                          onClick={() => setActivityWeatherFilter(opt.key as typeof activityWeatherFilter)}
+                          aria-pressed={activityWeatherFilter === opt.key}
+                        >
+                          {opt.label}
+                        </Button>
+                      ))}
+                    </div>
+                  </fieldset>
+
+                  <fieldset className="space-y-1.5">
+                    <legend className="text-typo-body font-medium">Saison</legend>
+                    <div className="flex flex-wrap gap-2" role="group" aria-label="Saisonfilter">
+                      {[
+                        { key: 'all', label: 'Alle' },
+                        { key: 'summer', label: 'Sommer' },
+                        { key: 'winter', label: 'Winter' },
+                      ].map((opt) => (
+                        <Button
+                          key={opt.key}
+                          type="button"
+                          size="sm"
+                          variant={activitySeasonFilter === opt.key ? 'default' : 'outline'}
+                          onClick={() => setActivitySeasonFilter(opt.key as typeof activitySeasonFilter)}
+                          aria-pressed={activitySeasonFilter === opt.key}
+                        >
+                          {opt.label}
+                        </Button>
+                      ))}
+                    </div>
+                  </fieldset>
+
+                  <fieldset className="space-y-1.5">
+                    <legend className="text-typo-body font-medium">Preis p.P. (€)</legend>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1">
+                          <Label htmlFor="priceMin" className="text-typo-body text-muted-foreground">Min</Label>
+                          <Input
+                            id="priceMin"
+                            type="number"
+                            min={priceBounds.min}
+                            max={activityPriceRange[1]}
+                            value={activityPriceRange[0]}
+                            onChange={(e) =>
+                              setActivityPriceRange((prev) => {
+                                const next = [Number(e.target.value) || 0, prev[1]] as [number, number];
+                                if (next[0] > next[1]) next[1] = next[0];
+                                return next;
+                              })
+                            }
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <Label htmlFor="priceMax" className="text-typo-body text-muted-foreground">Max</Label>
+                          <Input
+                            id="priceMax"
+                            type="number"
+                            min={activityPriceRange[0]}
+                            max={priceBounds.max || undefined}
+                            value={activityPriceRange[1]}
+                            onChange={(e) =>
+                              setActivityPriceRange((prev) => {
+                                const next = [prev[0], Number(e.target.value) || prev[0]] as [number, number];
+                                if (next[1] < next[0]) next[0] = next[1];
+                                return next;
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+                      <div className="text-typo-body text-muted-foreground flex justify-between">
+                        <span>von {priceBounds.min || 0}€</span>
+                        <span>bis {priceBounds.max || 0}€</span>
+                      </div>
                     </div>
                   </fieldset>
                 </div>
@@ -798,6 +976,23 @@ const CampaignDetail = () => {
                                 <span className="text-typo-body text-muted-foreground truncate">{option.location_region}</span>
                               </div>
                               <h4 className="text-typo-h3 leading-tight line-clamp-2">{option.title}</h4>
+                              {option.is_mystery && (
+                                <Badge variant="warning" className="w-fit">Mystery-Event</Badge>
+                              )}
+                              <div className="flex flex-wrap gap-2 text-[13px] text-muted-foreground">
+                                <span className="inline-flex items-center gap-1 rounded-full bg-secondary/60 px-2 py-1">
+                                  <Users className="w-3.5 h-3.5" aria-hidden="true" />
+                                  {option.min_participants ? `${option.min_participants}+ Pers.` : 'Teamgröße offen'}
+                                </span>
+                                <span className="inline-flex items-center gap-1 rounded-full bg-secondary/60 px-2 py-1">
+                                  <CloudRain className="w-3.5 h-3.5" aria-hidden="true" />
+                                  {option.weather_dependent ? 'Wetterabhängig' : 'Allwetter/Indoor'}
+                                </span>
+                                <span className="inline-flex items-center gap-1 rounded-full bg-secondary/60 px-2 py-1">
+                                  <SunSnow className="w-3.5 h-3.5" aria-hidden="true" />
+                                  {formatSeason(option.season)}
+                                </span>
+                              </div>
                               <p className="text-typo-body text-muted-foreground line-clamp-2">
                                 {option.description || 'Keine Beschreibung vorhanden.'}
                               </p>
@@ -829,6 +1024,9 @@ const CampaignDetail = () => {
                       <DialogDescription className="text-typo-body" id="activity-dialog-description">
                         {selectedActivity.category} • {selectedActivity.location_region}
                       </DialogDescription>
+                      {selectedActivity.is_mystery && (
+                        <Badge variant="warning" className="w-fit">Mystery-Event</Badge>
+                      )}
                     </DialogHeader>
                     {selectedActivity.image_url && (
                       <div
@@ -847,9 +1045,65 @@ const CampaignDetail = () => {
                           {selectedActivity.description || 'Keine Beschreibung vorhanden.'}
                         </p>
                       </div>
-                      <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/50">
-                        <span className="text-typo-body text-muted-foreground">Preis pro Person</span>
-                        <span className="text-typo-h3">€{Math.round(selectedActivity.est_price_pp)}</span>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
+                          <MapPin className="w-4 h-4 text-primary" aria-hidden="true" />
+                          <div>
+                            <p className="text-typo-body text-muted-foreground">Region</p>
+                            <p className="text-typo-body font-semibold">{selectedActivity.location_region}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
+                          <Users className="w-4 h-4 text-primary" aria-hidden="true" />
+                          <div>
+                            <p className="text-typo-body text-muted-foreground">Mindestteilnehmer</p>
+                            <p className="text-typo-body font-semibold">
+                              {selectedActivity.min_participants ? `${selectedActivity.min_participants}+ Personen` : 'Flexibel'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
+                          <CloudRain className="w-4 h-4 text-primary" aria-hidden="true" />
+                          <div>
+                            <p className="text-typo-body text-muted-foreground">Wetter</p>
+                            <p className="text-typo-body font-semibold">
+                              {selectedActivity.weather_dependent ? 'Wetterabhängig / Outdoor' : 'Allwetter oder Indoor'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
+                          <SunSnow className="w-4 h-4 text-primary" aria-hidden="true" />
+                          <div>
+                            <p className="text-typo-body text-muted-foreground">Saison</p>
+                            <p className="text-typo-body font-semibold">{formatSeason(selectedActivity.season)}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
+                          <BarChart3 className="w-4 h-4 text-primary" aria-hidden="true" />
+                          <div>
+                            <p className="text-typo-body text-muted-foreground">Kategorie</p>
+                            <p className="text-typo-body font-semibold">{selectedActivity.category}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
+                          <HelpCircle className="w-4 h-4 text-primary" aria-hidden="true" />
+                          <div>
+                            <p className="text-typo-body text-muted-foreground">Preis pro Person</p>
+                            <p className="text-typo-h3 leading-tight">€{Math.round(selectedActivity.est_price_pp)}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 text-primary" aria-hidden="true" />
+                        {selectedActivity.accessibility_flags?.length ? (
+                          selectedActivity.accessibility_flags.map((flag) => (
+                            <Badge key={flag} variant="secondary">
+                              {accessibilityLabel(flag)}
+                            </Badge>
+                          ))
+                        ) : (
+                          <span className="text-typo-body text-muted-foreground">Keine speziellen Accessibility-Hinweise</span>
+                        )}
                       </div>
                       {selectedActivity.tags?.length > 0 && (
                         <div>
@@ -876,4 +1130,3 @@ const CampaignDetail = () => {
 };
 
 export default CampaignDetail;
-

@@ -364,6 +364,11 @@ export const getAllEventOptions = async (): Promise<EventOption[]> => {
   return dedupeEventOptions(fromApi);
 };
 
+export const deleteCampaign = async (campaignId: string, deptCode: string): Promise<ApiMessage> => {
+  const query = `?dept_code=${encodeURIComponent(deptCode)}`;
+  return request<ApiMessage>(`/campaigns/${campaignId}${query}`, { method: 'DELETE' });
+};
+
 export const submitVotes = async (campaignId: string, votes: Vote[]): Promise<ApiMessage> => {
   const sessionId = ensureSessionId();
   return request<ApiMessage>(`/campaigns/${campaignId}/votes?session_id=${sessionId}`, {
