@@ -356,6 +356,8 @@ const CampaignDetail = () => {
                 <ContributionForm onSubmit={handleContribution} isSubmitting={submitting} />
               </div>
               <div className="space-y-4 lg:col-span-5">
+                <StretchGoals goals={campaign.stretch_goals} currentPercentage={fundingPercentage} />
+                <WallOfFame contributions={campaign.private_contributions} />
                 <div className="space-y-3">
                   <Card ref={qrCardRef} variant="elevated" className="border border-border/60 shadow-sm">
                     <CardHeader className="text-center pb-2">
@@ -369,27 +371,15 @@ const CampaignDetail = () => {
                         Teile den Code, damit dein Team direkt zum Event gelangt.
                       </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-6">
-                      <div className="flex justify-center">
-                        <motion.div
-                          initial={{ scale: 0.9, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          transition={{ duration: 0.2 }}
-                          className="p-4 bg-white rounded-2xl shadow-sm border"
-                        >
-                          <QRCodeSVG value={eventUrl} size={200} level="H" includeMargin className="rounded-xl" />
-                        </motion.div>
-                      </div>
-
-                      <div className="flex items-center gap-2 p-3 bg-secondary rounded-xl">
-                        <div className="w-11 shrink-0" aria-hidden="true" />
-                        <code className="flex-1 text-center font-mono text-sm font-semibold break-all">
-                          {eventUrl}
-                        </code>
-                        <Button variant="ghost" size="icon" onClick={copyEventLink} aria-label="Link kopieren">
-                          <Copy className="w-4 h-4" />
-                        </Button>
-                      </div>
+                    <CardContent className="flex justify-center pb-6">
+                      <motion.div
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ duration: 0.2 }}
+                        className="p-4 bg-white rounded-2xl shadow-sm border"
+                      >
+                        <QRCodeSVG value={eventUrl} size={200} level="H" includeMargin className="rounded-xl" />
+                      </motion.div>
                     </CardContent>
                   </Card>
                   <div className="flex gap-2">
@@ -403,9 +393,6 @@ const CampaignDetail = () => {
                     </Button>
                   </div>
                 </div>
-
-                <StretchGoals goals={campaign.stretch_goals} currentPercentage={fundingPercentage} />
-                <WallOfFame contributions={campaign.private_contributions} />
               </div>
             </div>
           </TabsContent>
