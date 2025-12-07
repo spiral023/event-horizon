@@ -62,7 +62,7 @@ class EventOptionBase(SQLModel):
 
 class EventOption(EventOptionBase, table=True):
     __tablename__ = "event_options"
-    id: Optional[str] = Field(default=None, primary_key=True)
+    id: str = Field(default_factory=gen_id, primary_key=True, index=True)
 
 
 class CampaignEventOption(SQLModel, table=True):
