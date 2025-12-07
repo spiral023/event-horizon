@@ -10,6 +10,7 @@ from app.schemas.domain import (
     AvailabilityPayload,
     CampaignCreate,
     CampaignRead,
+    CampaignUpdate,
     StretchGoalCreate,
     PrivateContributionCreate,
     TeamAnalytics,
@@ -102,6 +103,26 @@ def create_campaign(
         )
 
     session.commit()
+    return hydrate_campaign(session, campaign)
+
+
+@router.put("/{campaign_id}", response_model=CampaignRead, status_code=status.HTTP_200_OK)
+def update_campaign(
+    campaign_id: str,
+    payload: CampaignUpdate,
+    session: Session = Depends(get_session),
+) -> CampaignRead:
+    campaign = session.get(Campaign, campaign_id)
+    if not campaign:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found")
+
+    update_data = payload.model_dump(exclude_none=True)
+    for field, value in update_data.items():
+        setattr(campaign, field, value)
+
+    session.add(campaign)
+    session.commit()
+    session.refresh(campaign)
     return hydrate_campaign(session, campaign)
 
 

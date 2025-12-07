@@ -268,6 +268,17 @@ type CreateCampaignInput = {
   event_options?: EventOption[];
 };
 
+type UpdateCampaignInput = Partial<{
+  name: string;
+  target_date_range: string;
+  status: Campaign['status'];
+  total_budget_needed: number;
+  company_budget_available: number;
+  budget_per_participant?: number;
+  external_sponsors?: number;
+  winning_event_id?: string;
+}>;
+
 export const createCampaign = async (payload: CreateCampaignInput): Promise<Campaign> => {
   const { region, stretch_goals, event_options, ...rest } = payload;
   
@@ -307,6 +318,14 @@ export const createCampaign = async (payload: CreateCampaignInput): Promise<Camp
     body: JSON.stringify(body),
   });
   return mapCampaign(created);
+};
+
+export const updateCampaign = async (campaignId: string, payload: UpdateCampaignInput): Promise<Campaign> => {
+  const updated = await request<Campaign>(`/campaigns/${campaignId}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+  return mapCampaign(updated);
 };
 
 export const getEventOptions = async (region: RegionCode): Promise<EventOption[]> => {

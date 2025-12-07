@@ -84,6 +84,17 @@ class CampaignCreate(CampaignBase):
     stretch_goals: List[StretchGoalCreate] = Field(default_factory=list)
 
 
+class CampaignUpdate(BaseModel):
+    name: Optional[str] = None
+    target_date_range: Optional[str] = None
+    status: Optional[CampaignStatus] = None
+    total_budget_needed: Optional[float] = None
+    company_budget_available: Optional[float] = None
+    budget_per_participant: Optional[float] = None
+    external_sponsors: Optional[float] = None
+    winning_event_id: Optional[str] = None
+
+
 class CampaignRead(CampaignBase):
     id: str
     created_at: datetime
