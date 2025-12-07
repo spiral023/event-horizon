@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/components/ui/sonner';
-import { createCampaign } from '@/services/apiClient';
+import { createCampaign, getEventOptions } from '@/services/apiClient';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAppStore } from '@/store/appStore';
@@ -43,6 +43,7 @@ const CreateCampaign = () => {
 
   const [name, setName] = useState(() => `Team Event ${new Date().getFullYear()}`);
   const [targetDateRange, setTargetDateRange] = useState('');
+  const [votingDeadline, setVotingDeadline] = useState('');
   
   // Internal state for multi-selection tabs
   const [selectedMonths, setSelectedMonths] = useState<string[]>([]);
@@ -57,6 +58,9 @@ const CreateCampaign = () => {
   const [estimatedParticipants, setEstimatedParticipants] = useState(10);
   const [region, setRegion] = useState<RegionValue>(regionOptions[0].value);
   const [stretchGoals, setStretchGoals] = useState<StretchGoalDraft[]>([]);
+  const [eventOptions, setEventOptions] = useState<EventOption[]>([]);
+  const [selectedOptionIds, setSelectedOptionIds] = useState<string[]>([]);
+  const [optionsLoading, setOptionsLoading] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -122,10 +126,48 @@ const CreateCampaign = () => {
     return Math.min((companyBudget / totalBudget) * 100, 100);
   }, [companyBudget, totalBudget]);
 
+  const votingProgress = useMemo(() => {
+    if (!votingDeadline) return null;
+    const today = new Date();
+    const startMs = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+    const endMs = new Date(votingDeadline).getTime();
+    const duration = endMs - startMs;
+    if (duration <= 0) return 100;
+    const elapsed = Math.min(Math.max(Date.now() - startMs, 0), duration);
+    return Math.min(100, Math.max(0, (elapsed / duration) * 100));
+  }, [votingDeadline]);
+
   const handlePreset = (preset: (typeof budgetPresets)[number]) => {
     setBudgetMode('total');
     setTotalBudgetInput(preset.total);
     setCompanyBudget(preset.company);
+  };
+
+  useEffect(() => {
+    const loadOptions = async () => {
+      setOptionsLoading(true);
+      try {
+        const options = await getEventOptions(region);
+        setEventOptions(options);
+        setSelectedOptionIds(options.map((opt) => opt.id));
+      } catch (error) {
+        console.error('Failed to load event options', error);
+      } finally {
+        setOptionsLoading(false);
+      }
+    };
+    loadOptions();
+  }, [region]);
+
+  const toggleOption = (id: string) => {
+    setSelectedOptionIds((prev) => (prev.includes(id) ? prev.filter((opt) => opt !== id) : [...prev, id]));
+  };
+
+  const toggleAllOptions = () => {
+    if (!eventOptions.length) return;
+    setSelectedOptionIds((prev) =>
+      prev.length === eventOptions.length ? [] : eventOptions.map((opt) => opt.id)
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -143,16 +185,21 @@ const CreateCampaign = () => {
 
     setLoading(true);
     try {
+      const selectedOptions = eventOptions.filter((opt) => selectedOptionIds.includes(opt.id));
+      const deadlineIso = votingDeadline ? new Date(votingDeadline).toISOString() : null;
+
       const campaign = await createCampaign({
         name: name.trim() || 'Neues Team Event',
         dept_code: deptCode,
         target_date_range: targetDateRange.trim() || 'Demnächst',
+        voting_deadline: deadlineIso,
         total_budget_needed: Math.max(totalBudget, 0),
         company_budget_available: Math.max(Math.min(companyBudget, totalBudget), 0),
         budget_per_participant: budgetMode === 'perParticipant' ? budgetPerParticipant : undefined,
         external_sponsors: 0,
         region,
         stretch_goals: normalizedStretchGoals,
+        event_options: selectedOptions.length ? selectedOptions : undefined,
       });
 
       setCurrentCampaign(campaign.id);
@@ -319,6 +366,21 @@ const CreateCampaign = () => {
                   </Tabs>
                 </div>
 
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="votingDeadline">Voting-Deadline</Label>
+                    <Input
+                      id="votingDeadline"
+                      type="date"
+                      value={votingDeadline}
+                      onChange={(e) => setVotingDeadline(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      An diesem Tag wird die Abstimmung geschlossen und der Sieger steht fest.
+                    </p>
+                  </div>
+                </div>
+
                 <Tabs value={budgetMode} onValueChange={(value) => setBudgetMode(value as 'total' | 'perParticipant')} className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="total">Gesamt</TabsTrigger>
@@ -378,6 +440,26 @@ const CreateCampaign = () => {
                   />
                 </div>
 
+
+                <div className="rounded-xl border border-border p-4 bg-secondary/20 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex flex-col">
+                      <span className="text-xs uppercase text-muted-foreground">Voting-Status</span>
+                      <span className="font-semibold">
+                        {votingDeadline ? `Bis ${votingDeadline}` : 'Keine Deadline gesetzt'}
+                      </span>
+                    </div>
+                    {votingDeadline && votingProgress !== null && (
+                      <span className="text-xs text-muted-foreground">{Math.round(votingProgress)}%</span>
+                    )}
+                  </div>
+                  {votingDeadline ? (
+                    <Progress value={votingProgress ?? 0} />
+                  ) : (
+                    <p className="text-xs text-muted-foreground">Setze eine Deadline, um den Fortschritt zu tracken.</p>
+                  )}
+                </div>
+
                 <div className="space-y-3 rounded-xl border border-border p-4 bg-secondary/30">
                   <div className="flex items-center justify-between">
                     <p className="font-semibold">Geschätztes Gesamtbudget</p>
@@ -433,6 +515,55 @@ const CreateCampaign = () => {
                         <span className="text-xs text-muted-foreground">EUR {preset.total}</span>
                       </Button>
                     ))}
+                  </div>
+                </div>
+
+                <div className="space-y-3 rounded-xl border border-border p-4 bg-secondary/30">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Abstimmungs-Optionen</Label>
+                      <p className="text-xs text-muted-foreground">Waehle aus, welche Vorschlaege ins Voting gehen.</p>
+                    </div>
+                    <Button type="button" variant="outline" size="sm" onClick={toggleAllOptions} disabled={optionsLoading || !eventOptions.length}>
+                      {selectedOptionIds.length === eventOptions.length ? 'Alle abwaehlen' : 'Alle waehlen'}
+                    </Button>
+                  </div>
+                  <div className="overflow-x-auto rounded-xl border border-border bg-background/50">
+                    <table className="min-w-full text-sm">
+                      <thead className="bg-secondary/50 text-muted-foreground">
+                        <tr className="text-left">
+                          <th className="p-3"></th>
+                          <th className="p-3">Titel</th>
+                          <th className="p-3">Kategorie</th>
+                          <th className="p-3">Region</th>
+                          <th className="p-3">Preis p.P.</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {optionsLoading && (
+                          <tr><td colSpan={5} className="p-4 text-center text-xs text-muted-foreground">Lade Optionen...</td></tr>
+                        )}
+                        {!optionsLoading && !eventOptions.length && (
+                          <tr><td colSpan={5} className="p-4 text-center text-xs text-muted-foreground">Keine Optionen verfuegbar.</td></tr>
+                        )}
+                        {!optionsLoading && eventOptions.map((option) => (
+                          <tr key={option.id} className="border-t border-border/70">
+                            <td className="p-3">
+                              <Input
+                                type="checkbox"
+                                checked={selectedOptionIds.includes(option.id)}
+                                onChange={() => toggleOption(option.id)}
+                                className="h-4 w-4"
+                              />
+                            </td>
+                            <td className="p-3 font-medium">{option.title}</td>
+                            <td className="p-3">{option.category}</td>
+                            <td className="p-3">{option.location_region}</td>
+                            <td className="p-3">EUR {Math.round(option.est_price_pp)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
 

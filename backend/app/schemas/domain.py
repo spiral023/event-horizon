@@ -71,6 +71,7 @@ class CampaignBase(BaseModel):
     name: str
     dept_code: str
     target_date_range: str
+    voting_deadline: Optional[datetime] = None
     status: CampaignStatus = CampaignStatus.voting
     total_budget_needed: float
     company_budget_available: float
@@ -87,6 +88,7 @@ class CampaignCreate(CampaignBase):
 class CampaignUpdate(BaseModel):
     name: Optional[str] = None
     target_date_range: Optional[str] = None
+    voting_deadline: Optional[datetime] = None
     status: Optional[CampaignStatus] = None
     total_budget_needed: Optional[float] = None
     company_budget_available: Optional[float] = None

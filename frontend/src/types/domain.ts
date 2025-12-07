@@ -43,6 +43,7 @@ export interface Campaign {
   name: string;
   dept_code: string;
   target_date_range: string;
+  voting_deadline?: string | null;
   status: CampaignStatus;
   total_budget_needed: number;
   company_budget_available: number;

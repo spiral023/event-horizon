@@ -29,6 +29,7 @@ class Campaign(SQLModel, table=True):
     name: str
     dept_code: str = Field(foreign_key="department.dept_code", index=True)
     target_date_range: str
+    voting_deadline: Optional[datetime] = Field(default=None, nullable=True)
     status: CampaignStatus = Field(default=CampaignStatus.voting)
     total_budget_needed: float
     company_budget_available: float

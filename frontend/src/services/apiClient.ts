@@ -48,6 +48,7 @@ interface RawCampaign {
   name: string;
   dept_code: string;
   target_date_range: string;
+  voting_deadline?: string | null;
   status: CampaignStatus;
   total_budget_needed: string | number;
   company_budget_available: string | number;
@@ -113,6 +114,7 @@ const mapCampaign = (campaign: RawCampaign): Campaign => ({
   name: campaign.name,
   dept_code: campaign.dept_code,
   target_date_range: campaign.target_date_range,
+  voting_deadline: campaign.voting_deadline ?? null,
   status: campaign.status,
   total_budget_needed: Number(campaign.total_budget_needed) || 0,
   company_budget_available: Number(campaign.company_budget_available) || 0,
@@ -257,6 +259,7 @@ type CreateCampaignInput = {
   name: string;
   dept_code: string;
   target_date_range: string;
+  voting_deadline?: string | null;
   total_budget_needed: number;
   company_budget_available: number;
   budget_per_participant?: number;
@@ -271,12 +274,14 @@ type CreateCampaignInput = {
 type UpdateCampaignInput = Partial<{
   name: string;
   target_date_range: string;
+  voting_deadline?: string | null;
   status: Campaign['status'];
   total_budget_needed: number;
   company_budget_available: number;
   budget_per_participant?: number;
   external_sponsors?: number;
   winning_event_id?: string;
+  voting_deadline?: string | null;
 }>;
 
 export const createCampaign = async (payload: CreateCampaignInput): Promise<Campaign> => {
@@ -307,6 +312,7 @@ export const createCampaign = async (payload: CreateCampaignInput): Promise<Camp
 
   const body = {
     ...rest,
+    voting_deadline: rest.voting_deadline ?? null,
     status: rest.status || 'voting',
     external_sponsors: rest.external_sponsors ?? 0,
     event_options: event_options?.length ? event_options : eventOptionPayload,

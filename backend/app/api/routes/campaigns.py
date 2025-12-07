@@ -62,6 +62,7 @@ def create_campaign(
         name=payload.name,
         dept_code=payload.dept_code,
         target_date_range=payload.target_date_range,
+        voting_deadline=payload.voting_deadline,
         status=payload.status,
         total_budget_needed=payload.total_budget_needed,
         company_budget_available=payload.company_budget_available,
