@@ -5,6 +5,7 @@ import { ArrowLeft, Vote, Calendar, BarChart3, Copy, Share2, UserCog, Plus, X } 
 import { QRCodeSVG } from 'qrcode.react';
 import { toBlob } from 'html-to-image';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
