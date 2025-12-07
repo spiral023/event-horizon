@@ -37,13 +37,13 @@ const Dashboard = () => {
             </div>
             <TooltipProvider>
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={() => navigate("/qr-create")}>
+                <Button variant="ghost" size="icon" onClick={() => navigate("/qr-create")} aria-label="QR-Code erstellen">
                   <QrCode className="w-5 h-5" />
                 </Button>
                 <ThemeToggle />
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" onClick={handleLogout}>
+                    <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Team verlassen">
                       <LogOut className="w-5 h-5" />
                     </Button>
                   </TooltipTrigger>

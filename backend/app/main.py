@@ -1,10 +1,13 @@
 import logging
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from app.api.routes import campaigns, events, health, rooms
 from app.core.config import get_settings
 from app.core.database import init_db
+from app.core.limiter import limiter
 
 # Configure logging
 logging.basicConfig(
@@ -16,13 +19,25 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 app = FastAPI(title=settings.project_name)
 
+# Rate limiting
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+# CORS Middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[str(origin) for origin in settings.cors_origin_list],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=[
+        "Content-Type",
+        "Authorization",
+        "Accept",
+        "Origin",
+        "X-Requested-With",
+    ],
+    expose_headers=["Content-Length", "X-Request-ID"],
+    max_age=600,  # 10 minutes
 )
 
 @app.middleware("http")

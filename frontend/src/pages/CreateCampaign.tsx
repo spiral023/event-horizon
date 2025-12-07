@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAppStore } from '@/store/appStore';
 import { generateId } from '@/utils/storage';
+import { sanitizeText, sanitizeNumber } from '@/lib/sanitize';
 
 type RegionValue = EventOption['location_region'];
 type StretchGoalDraft = {
@@ -174,11 +175,12 @@ const CreateCampaign = () => {
     e.preventDefault();
     if (!deptCode) return;
 
+    // Sanitize stretch goals
     const normalizedStretchGoals: StretchGoal[] = stretchGoals
       .map((goal) => ({
         ...goal,
-        reward_description: goal.reward_description.trim(),
-        amount_threshold: Math.max(goal.amount_threshold, 0),
+        reward_description: sanitizeText(goal.reward_description),
+        amount_threshold: sanitizeNumber(goal.amount_threshold, { min: 0, max: 1000 }),
         unlocked: false,
       }))
       .filter((goal) => goal.reward_description || goal.amount_threshold > 0);
@@ -188,14 +190,15 @@ const CreateCampaign = () => {
       const selectedOptions = eventOptions.filter((opt) => selectedOptionIds.includes(opt.id));
       const deadlineIso = votingDeadline ? new Date(votingDeadline).toISOString() : null;
 
+      // Sanitize all inputs before sending to API
       const campaign = await createCampaign({
-        name: name.trim() || 'Neues Team Event',
+        name: sanitizeText(name) || 'Neues Team Event',
         dept_code: deptCode,
-        target_date_range: targetDateRange.trim() || 'Demnächst',
+        target_date_range: sanitizeText(targetDateRange) || 'Demnächst',
         voting_deadline: deadlineIso,
-        total_budget_needed: Math.max(totalBudget, 0),
-        company_budget_available: Math.max(Math.min(companyBudget, totalBudget), 0),
-        budget_per_participant: budgetMode === 'perParticipant' ? budgetPerParticipant : undefined,
+        total_budget_needed: sanitizeNumber(totalBudget, { min: 0, max: 1000000 }),
+        company_budget_available: sanitizeNumber(companyBudget, { min: 0, max: totalBudget }),
+        budget_per_participant: budgetMode === 'perParticipant' ? sanitizeNumber(budgetPerParticipant || 0, { min: 0, max: 10000 }) : undefined,
         external_sponsors: 0,
         region,
         stretch_goals: normalizedStretchGoals,

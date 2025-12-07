@@ -19,11 +19,11 @@
     // Phase 1: Enable non-breaking checks immediately
     "noUnusedLocals": true,
     "noUnusedParameters": false, // TODO: Enable after cleanup
-    "noImplicitAny": false, // TODO: Enable gradually per file
     "noFallthroughCasesInSwitch": true,
-    // Phase 2: Enable after code cleanup (see TYPESCRIPT-MIGRATION.md)
-    // "strictNullChecks": true,
-    // "strict": true,
+
+    // Phase 3: Strict type checking
+    "strictNullChecks": true,
+    "noImplicitAny": true,
 
     "baseUrl": ".",
     "paths": {

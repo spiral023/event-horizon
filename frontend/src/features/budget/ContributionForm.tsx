@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useAppStore } from '@/store/appStore';
+import { sanitizeNumber } from '@/lib/sanitize';
 
 interface ContributionFormProps {
   onSubmit: (amount: number, isAnonymous: boolean) => void;
@@ -20,9 +21,10 @@ export const ContributionForm = ({ onSubmit, isSubmitting }: ContributionFormPro
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const value = parseFloat(amount);
-    if (value > 0) {
-      onSubmit(value, isAnonymous);
+    // Sanitize and validate the amount (min: 1€, max: 100000€)
+    const sanitizedValue = sanitizeNumber(amount, { min: 1, max: 100000 });
+    if (sanitizedValue > 0) {
+      onSubmit(sanitizedValue, isAnonymous);
       setAmount('');
     }
   };

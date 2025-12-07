@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlmodel import Session, delete, select
 
 from app.core.database import get_session
@@ -25,7 +25,9 @@ from app.services.campaigns import (
     get_campaign_stretch_goals,
     hydrate_campaign,
     hydrate_campaigns,
+    hydrate_campaigns_optimized,
 )
+from app.core.limiter import limiter
 
 
 router = APIRouter(prefix="/campaigns", tags=["campaigns"])
@@ -36,8 +38,14 @@ def list_campaigns(
     dept_code: str = Query(..., description="Department code"),
     session: Session = Depends(get_session),
 ) -> List[CampaignRead]:
+    """
+    Get all campaigns for a department.
+
+    Uses optimized query to avoid N+1 problem.
+    Performance: 3 queries instead of 1 + (3 * N)
+    """
     campaigns = session.exec(select(Campaign).where(Campaign.dept_code == dept_code)).all()
-    return hydrate_campaigns(session, campaigns)
+    return hydrate_campaigns_optimized(session, campaigns)
 
 
 @router.get("/{campaign_id}", response_model=CampaignRead)
@@ -52,10 +60,17 @@ def get_campaign_detail(
 
 
 @router.post("", response_model=CampaignRead, status_code=status.HTTP_201_CREATED)
+@limiter.limit("10/minute")
 def create_campaign(
+    request: Request,
     payload: CampaignCreate,
     session: Session = Depends(get_session),
 ) -> CampaignRead:
+    """
+    Create a new campaign.
+
+    Rate limit: 10 requests per minute per IP.
+    """
     ensure_department(session, payload.dept_code)
 
     campaign = Campaign(
@@ -157,13 +172,20 @@ def replace_stretch_goals(
 
 
 @router.post("/{campaign_id}/votes", response_model=ApiMessage, status_code=status.HTTP_200_OK)
+@limiter.limit("10/minute")
 def submit_votes(
+    request: Request,
     campaign_id: str,
     votes: List[VotePayload],
     session: Session = Depends(get_session),
     user_id: Optional[str] = Query(None, description="User identifier (optional)"),
     session_id: Optional[str] = Query(None, description="Client session identifier (optional)"),
 ) -> ApiMessage:
+    """
+    Submit votes for a campaign.
+
+    Rate limit: 10 requests per minute per IP to prevent vote spamming.
+    """
     campaign = session.get(Campaign, campaign_id)
     if not campaign:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found")
@@ -221,11 +243,18 @@ def submit_availability(
 
 
 @router.post("/{campaign_id}/contributions", response_model=CampaignRead, status_code=status.HTTP_201_CREATED)
+@limiter.limit("5/minute")
 def add_campaign_contribution(
+    request: Request,
     campaign_id: str,
     contribution: PrivateContributionCreate,
     session: Session = Depends(get_session),
 ) -> CampaignRead:
+    """
+    Add a contribution to a campaign.
+
+    Rate limit: 5 requests per minute per IP to prevent abuse.
+    """
     campaign = session.get(Campaign, campaign_id)
     if not campaign:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found")

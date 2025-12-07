@@ -1,10 +1,14 @@
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 from uuid import uuid4
 
 from sqlalchemy import Column, JSON
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
+
+# TYPE_CHECKING prevents circular imports
+if TYPE_CHECKING:
+    from .domain import EventOption, StretchGoal, PrivateContribution
 
 
 def gen_id() -> str:
@@ -37,6 +41,10 @@ class Campaign(SQLModel, table=True):
     external_sponsors: float = 0
     winning_event_id: Optional[str] = Field(default=None, foreign_key="event_options.id")
     created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+
+    # Relationships for eager loading (fixes N+1 query problem)
+    stretch_goals: List["StretchGoal"] = Relationship(back_populates="campaign")
+    private_contributions: List["PrivateContribution"] = Relationship(back_populates="campaign")
 
 
 class EventCategory(str, Enum):
@@ -80,6 +88,9 @@ class StretchGoal(SQLModel, table=True):
     unlocked: bool = False
     icon: Optional[str] = None
 
+    # Relationship back to campaign
+    campaign: Optional["Campaign"] = Relationship(back_populates="stretch_goals")
+
 
 class BadgeType(str, Enum):
     whale = "whale"
@@ -96,6 +107,9 @@ class PrivateContribution(SQLModel, table=True):
     is_anonymous: bool = False
     badge: Optional[BadgeType] = None
     created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+
+    # Relationship back to campaign
+    campaign: Optional["Campaign"] = Relationship(back_populates="private_contributions")
 
 
 class UserProfile(SQLModel, table=True):

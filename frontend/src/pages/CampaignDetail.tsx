@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Vote, Calendar, BarChart3, Copy, Share2, UserCog, Plus, X } from 'lucide-react';
@@ -22,6 +22,7 @@ import { useAppStore } from '@/store/appStore';
 import type { Campaign, TeamAnalytics, Availability, EventOption } from '@/types/domain';
 import { toast } from 'sonner';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { sanitizeName, sanitizeText, sanitizeStringArray } from '@/lib/sanitize';
 
 const CampaignDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -87,7 +88,7 @@ const CampaignDetail = () => {
     }
   }, [user]);
 
-  const handleContribution = async (amount: number, isAnonymous: boolean) => {
+  const handleContribution = useCallback(async (amount: number, isAnonymous: boolean) => {
     if (!id || !user) return;
     setSubmitting(true);
     try {
@@ -104,9 +105,9 @@ const CampaignDetail = () => {
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [id, user]);
 
-  const handleAvailability = async (availability: Availability[]) => {
+  const handleAvailability = useCallback(async (availability: Availability[]) => {
     if (!id) return;
     try {
       await submitAvailability(id, availability);
@@ -114,52 +115,52 @@ const CampaignDetail = () => {
     } catch (error) {
       toast.error('Fehler beim Speichern');
     }
-  };
+  }, [id]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
-      </div>
-    );
-  }
+  // All memoized values - must be before conditional returns
+  const fundingPercentage = useMemo(() => campaign ? getFundingPercentage(campaign) : 0, [campaign]);
 
-  if (!campaign) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-6">
-        <div className="text-center">
-          <h2 className="text-xl font-bold mb-2">Kampagne nicht gefunden</h2>
-          <Button onClick={() => navigate('/dashboard')}>Zurueck</Button>
-        </div>
-      </div>
-    );
-  }
-
-  const fundingPercentage = getFundingPercentage(campaign);
-  const appOrigin =
-    typeof window !== 'undefined' && window.location.origin
+  const appOrigin = useMemo(
+    () => (typeof window !== 'undefined' && window.location.origin
       ? window.location.origin
-      : 'https://event-horizon.sp23.online';
-  const eventPath = campaign.status === 'voting' ? `/voting/${campaign.id}` : `/campaign/${campaign.id}`;
-  const eventUrl = `${appOrigin}${eventPath}`;
-  const votingDeadline = campaign.voting_deadline ? new Date(campaign.voting_deadline) : null;
-  const votingProgress = votingDeadline
-    ? (() => {
-        const now = Date.now();
-        const start = new Date();
-        start.setHours(0, 0, 0, 0);
-        const startMs = start.getTime();
-        const endMs = votingDeadline.getTime();
-        if (endMs <= startMs) return 100;
-        const ratio = Math.min(1, Math.max(0, (now - startMs) / (endMs - startMs)));
-        return Math.round(ratio * 100);
-      })()
-    : null;
-  const votingClosed = votingDeadline ? Date.now() >= votingDeadline.getTime() : false;
-  const formatDeadline = (date: Date) =>
-    date.toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' });
+      : 'https://event-horizon.sp23.online'),
+    []
+  );
 
-  const copyEventLink = async () => {
+  const eventUrl = useMemo(() => {
+    if (!campaign) return '';
+    const eventPath = campaign.status === 'voting' ? `/voting/${campaign.id}` : `/campaign/${campaign.id}`;
+    return `${appOrigin}${eventPath}`;
+  }, [campaign, appOrigin]);
+
+  const votingDeadline = useMemo(
+    () => campaign?.voting_deadline ? new Date(campaign.voting_deadline) : null,
+    [campaign?.voting_deadline]
+  );
+
+  const votingProgress = useMemo(() => {
+    if (!votingDeadline) return null;
+    const now = Date.now();
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const startMs = start.getTime();
+    const endMs = votingDeadline.getTime();
+    if (endMs <= startMs) return 100;
+    const ratio = Math.min(1, Math.max(0, (now - startMs) / (endMs - startMs)));
+    return Math.round(ratio * 100);
+  }, [votingDeadline]);
+
+  const votingClosed = useMemo(
+    () => votingDeadline ? Date.now() >= votingDeadline.getTime() : false,
+    [votingDeadline]
+  );
+
+  const formatDeadline = useCallback(
+    (date: Date) => date.toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' }),
+    []
+  );
+
+  const copyEventLink = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(eventUrl);
       toast.success('Link kopiert!');
@@ -167,10 +168,10 @@ const CampaignDetail = () => {
       console.error('Copy failed', error);
       toast.error('Konnte Link nicht kopieren.');
     }
-  };
+  }, [eventUrl]);
 
-  const shareEventCard = async () => {
-    if (!qrCardRef.current) return;
+  const shareEventCard = useCallback(async () => {
+    if (!qrCardRef.current || !campaign) return;
     try {
       const blob = await toBlob(qrCardRef.current, { cacheBust: true });
       if (!blob) throw new Error('Bild konnte nicht generiert werden');
@@ -194,18 +195,22 @@ const CampaignDetail = () => {
       copyEventLink();
       toast.error('Teilen fehlgeschlagen, Link wurde kopiert.');
     }
-  };
+  }, [campaign, copyEventLink]);
 
-  const handleProfileSave = async () => {
+  const handleProfileSave = useCallback(async () => {
     if (!user) return setProfileOpen(false);
     setSavingProfile(true);
     try {
-      const trimmedName = nameDraft.trim() || 'Team Member';
+      // Sanitize all user inputs
+      const sanitizedName = sanitizeName(nameDraft) || 'Team Member';
+      const sanitizedHobbies = sanitizeStringArray(hobbies);
+      const sanitizedPreferences = sanitizeStringArray(preferences);
+
       setUser({
         ...user,
-        name: trimmedName,
-        hobbies,
-        history: { liked_categories: preferences },
+        name: sanitizedName,
+        hobbies: sanitizedHobbies,
+        history: { liked_categories: sanitizedPreferences },
       });
       toast.success('Profil aktualisiert');
       setProfileOpen(false);
@@ -215,14 +220,56 @@ const CampaignDetail = () => {
     } finally {
       setSavingProfile(false);
     }
-  };
+  }, [user, nameDraft, hobbies, preferences, setUser]);
+
+  // Memoize unique regions for filter buttons
+  const uniqueRegions = useMemo(
+    () => Array.from(new Set(activityOptions.map((o) => o.location_region))),
+    [activityOptions]
+  );
+
+  // Memoize filtered activities to avoid recalculating on every render
+  const filteredActivities = useMemo(() => {
+    return activityOptions.filter((opt) => {
+      const term = activitySearch.toLowerCase();
+      const matchesSearch =
+        opt.title.toLowerCase().includes(term) ||
+        opt.tags.join(' ').toLowerCase().includes(term) ||
+        opt.location_region.toLowerCase().includes(term);
+      const matchesRegion =
+        activityRegionFilter.length === 0 || activityRegionFilter.includes(opt.location_region);
+      const matchesCategory =
+        activityCategoryFilter.length === 0 || activityCategoryFilter.includes(opt.category);
+      return matchesSearch && matchesRegion && matchesCategory;
+    });
+  }, [activityOptions, activitySearch, activityRegionFilter, activityCategoryFilter]);
+
+  // Conditional returns AFTER all hooks
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+
+  if (!campaign) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <div className="text-center">
+          <h2 className="text-xl font-bold mb-2">Kampagne nicht gefunden</h2>
+          <Button onClick={() => navigate('/dashboard')}>Zurueck</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-8">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="container max-w-5xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
+            <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} aria-label="Zurück zum Dashboard">
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div className="flex-1">
@@ -533,7 +580,7 @@ const CampaignDetail = () => {
                   <div className="space-y-1">
                     <Label className="text-sm text-muted-foreground">Regionen</Label>
                     <div className="flex flex-wrap gap-2">
-                      {Array.from(new Set(activityOptions.map((o) => o.location_region))).map((regionCode) => (
+                      {uniqueRegions.map((regionCode) => (
                         <Button
                           key={regionCode}
                           type="button"
@@ -578,20 +625,7 @@ const CampaignDetail = () => {
                   </div>
                 ) : (
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {activityOptions
-                      .filter((opt) => {
-                        const term = activitySearch.toLowerCase();
-                        const matchesSearch =
-                          opt.title.toLowerCase().includes(term) ||
-                          opt.tags.join(' ').toLowerCase().includes(term) ||
-                          opt.location_region.toLowerCase().includes(term);
-                        const matchesRegion =
-                          activityRegionFilter.length === 0 || activityRegionFilter.includes(opt.location_region);
-                        const matchesCategory =
-                          activityCategoryFilter.length === 0 || activityCategoryFilter.includes(opt.category);
-                        return matchesSearch && matchesRegion && matchesCategory;
-                      })
-                      .map((option) => (
+                    {filteredActivities.map((option) => (
                         <Card
                           key={option.id}
                           variant="elevated"

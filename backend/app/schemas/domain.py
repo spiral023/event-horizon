@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.models import BadgeType, CampaignStatus, EventCategory
 
@@ -20,6 +20,33 @@ class EventOptionBase(BaseModel):
     is_mystery: bool = False
     season: str = "all_year"  # 'summer', 'winter', 'all_year'
 
+    @field_validator('title')
+    @classmethod
+    def validate_title(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError('Event title cannot be empty')
+        if len(v) > 200:
+            raise ValueError('Event title too long (max 200 chars)')
+        return v.strip()
+
+    @field_validator('est_price_pp')
+    @classmethod
+    def validate_price(cls, v: float) -> float:
+        if v < 0:
+            raise ValueError('Price per person must be non-negative')
+        if v > 10000:
+            raise ValueError('Price per person unrealistic (max 10000€)')
+        return v
+
+    @field_validator('min_participants')
+    @classmethod
+    def validate_min_participants(cls, v: Optional[int]) -> Optional[int]:
+        if v is not None and v < 1:
+            raise ValueError('Minimum participants must be at least 1')
+        if v is not None and v > 1000:
+            raise ValueError('Minimum participants unrealistic (max 1000)')
+        return v
+
 
 class EventOptionCreate(EventOptionBase):
     id: Optional[str] = None
@@ -36,6 +63,24 @@ class StretchGoalBase(BaseModel):
     reward_description: str
     unlocked: bool = False
     icon: Optional[str] = None
+
+    @field_validator('amount_threshold')
+    @classmethod
+    def validate_threshold(cls, v: float) -> float:
+        if v < 0:
+            raise ValueError('Amount threshold must be non-negative')
+        if v > 1000:
+            raise ValueError('Amount threshold unrealistic (max 1000%)')
+        return v
+
+    @field_validator('reward_description')
+    @classmethod
+    def validate_description(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError('Reward description cannot be empty')
+        if len(v) > 500:
+            raise ValueError('Reward description too long (max 500 chars)')
+        return v.strip()
 
 
 class StretchGoalCreate(StretchGoalBase):
@@ -54,6 +99,24 @@ class PrivateContributionBase(BaseModel):
     is_hero: bool = False
     is_anonymous: bool = False
     badge: Optional[BadgeType] = None
+
+    @field_validator('user_name')
+    @classmethod
+    def validate_user_name(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError('User name cannot be empty')
+        if len(v) > 100:
+            raise ValueError('User name too long (max 100 chars)')
+        return v.strip()
+
+    @field_validator('amount')
+    @classmethod
+    def validate_amount(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError('Contribution amount must be positive')
+        if v > 100000:
+            raise ValueError('Contribution amount unrealistic (max 100000€)')
+        return v
 
 
 class PrivateContributionCreate(PrivateContributionBase):
@@ -78,6 +141,51 @@ class CampaignBase(BaseModel):
     budget_per_participant: Optional[float] = None
     external_sponsors: float = 0
     winning_event_id: Optional[str] = None
+
+    @field_validator('name')
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError('Campaign name cannot be empty')
+        if len(v) > 200:
+            raise ValueError('Campaign name too long (max 200 chars)')
+        return v.strip()
+
+    @field_validator('dept_code')
+    @classmethod
+    def validate_dept_code(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError('Department code cannot be empty')
+        if len(v) > 50:
+            raise ValueError('Department code too long (max 50 chars)')
+        return v.strip().upper()
+
+    @field_validator('target_date_range')
+    @classmethod
+    def validate_date_range(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError('Target date range cannot be empty')
+        if len(v) > 100:
+            raise ValueError('Target date range too long (max 100 chars)')
+        return v.strip()
+
+    @field_validator('total_budget_needed', 'company_budget_available', 'external_sponsors')
+    @classmethod
+    def validate_positive_budget(cls, v: float) -> float:
+        if v < 0:
+            raise ValueError('Budget values must be non-negative')
+        if v > 1000000:
+            raise ValueError('Budget value unrealistic (max 1000000€)')
+        return v
+
+    @field_validator('budget_per_participant')
+    @classmethod
+    def validate_budget_pp(cls, v: Optional[float]) -> Optional[float]:
+        if v is not None and v < 0:
+            raise ValueError('Budget per participant must be non-negative')
+        if v is not None and v > 10000:
+            raise ValueError('Budget per participant unrealistic (max 10000€)')
+        return v
 
 
 class CampaignCreate(CampaignBase):
