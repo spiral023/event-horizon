@@ -16,6 +16,14 @@ import {
   Users,
   CloudRain,
   SunSnow,
+  ChevronDown,
+  ChevronUp,
+  Search,
+  MapPin,
+  Tag,
+  Euro,
+  Filter,
+  XCircle,
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toBlob } from 'html-to-image';
@@ -80,6 +88,7 @@ const CampaignDetail = () => {
   const [activitySeasonFilter, setActivitySeasonFilter] = useState<'all' | 'summer' | 'winter'>('all');
   const [activityPriceRange, setActivityPriceRange] = useState<[number, number]>([0, 0]);
   const [selectedActivity, setSelectedActivity] = useState<EventOption | null>(null);
+  const [filtersExpanded, setFiltersExpanded] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -152,6 +161,29 @@ const CampaignDetail = () => {
     }
   }, [id]);
 
+  // Memoize unique regions, tags, and price bounds for filters - must be before callbacks that use them
+  const uniqueRegions = useMemo(
+    () => Array.from(new Set(activityOptions.map((o) => o.location_region))),
+    [activityOptions]
+  );
+
+  const uniqueTags = useMemo(
+    () => Array.from(new Set(activityOptions.flatMap((o) => o.tags || []))).sort(),
+    [activityOptions]
+  );
+
+  const priceBounds = useMemo(() => {
+    if (!activityOptions.length) return { min: 0, max: 0 };
+    const prices = activityOptions.map((o) => Number(o.est_price_pp) || 0);
+    return { min: Math.min(...prices), max: Math.max(...prices) };
+  }, [activityOptions]);
+
+  useEffect(() => {
+    if (priceBounds.max > 0) {
+      setActivityPriceRange([priceBounds.min, priceBounds.max]);
+    }
+  }, [priceBounds.min, priceBounds.max]);
+
   const handleVote = useCallback((event: EventOption) => {
     toast.success(`'${event.title}' für Voting ausgewählt!`);
     setSelectedActivity(null);
@@ -219,6 +251,42 @@ const CampaignDetail = () => {
     setActivityTagFilter((prev) => [...prev, value]);
   }, [activityTagFilter, handleTagRemove]);
 
+  const resetFilters = useCallback(() => {
+    setActivitySearch('');
+    setActivityRegionFilter([]);
+    setActivityCategoryFilter([]);
+    setActivityTagFilter([]);
+    setActivityWeatherFilter('all');
+    setActivitySeasonFilter('all');
+    if (priceBounds.max > 0) {
+      setActivityPriceRange([priceBounds.min, priceBounds.max]);
+    }
+    toast.success('Filter zurückgesetzt');
+  }, [priceBounds.min, priceBounds.max]);
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (activitySearch.trim()) count++;
+    count += activityRegionFilter.length;
+    count += activityCategoryFilter.length;
+    count += activityTagFilter.length;
+    if (activityWeatherFilter !== 'all') count++;
+    if (activitySeasonFilter !== 'all') count++;
+    const [minPrice, maxPrice] = activityPriceRange;
+    if (minPrice !== priceBounds.min || maxPrice !== priceBounds.max) count++;
+    return count;
+  }, [
+    activitySearch,
+    activityRegionFilter.length,
+    activityCategoryFilter.length,
+    activityTagFilter.length,
+    activityWeatherFilter,
+    activitySeasonFilter,
+    activityPriceRange,
+    priceBounds.min,
+    priceBounds.max,
+  ]);
+
   const copyEventLink = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(eventUrl);
@@ -280,29 +348,6 @@ const CampaignDetail = () => {
       setSavingProfile(false);
     }
   }, [user, nameDraft, hobbies, preferences, setUser]);
-
-  // Memoize unique regions for filter buttons
-  const uniqueRegions = useMemo(
-    () => Array.from(new Set(activityOptions.map((o) => o.location_region))),
-    [activityOptions]
-  );
-
-  const uniqueTags = useMemo(
-    () => Array.from(new Set(activityOptions.flatMap((o) => o.tags || []))).sort(),
-    [activityOptions]
-  );
-
-  const priceBounds = useMemo(() => {
-    if (!activityOptions.length) return { min: 0, max: 0 };
-    const prices = activityOptions.map((o) => Number(o.est_price_pp) || 0);
-    return { min: Math.min(...prices), max: Math.max(...prices) };
-  }, [activityOptions]);
-
-  useEffect(() => {
-    if (priceBounds.max > 0) {
-      setActivityPriceRange([priceBounds.min, priceBounds.max]);
-    }
-  }, [priceBounds.min, priceBounds.max]);
 
   const formatSeason = useCallback((season?: EventOption['season']) => {
     if (season === 'summer') return 'Sommer';
@@ -801,168 +846,341 @@ const CampaignDetail = () => {
 
           <TabsContent value="activities" className="space-y-4" role="tabpanel" aria-label="Verfügbare Event-Aktivitäten">
             <Card variant="elevated">
-                <CardHeader className="pb-4">
-                  <div className="flex items-center gap-2 mb-1">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
                     <Calendar className="w-5 h-5 text-primary" aria-hidden="true" />
                     <CardTitle className="font-display text-typo-h2">Verfügbare Events</CardTitle>
                   </div>
+                  {activeFilterCount > 0 && (
+                    <Badge variant="secondary" className="gap-1.5">
+                      <Filter className="w-3.5 h-3.5" aria-hidden="true" />
+                      {activeFilterCount} aktiv
+                    </Badge>
+                  )}
+                </div>
                 <CardDescription className="text-typo-body">Alle Optionen aus allen Regionen mit Filter und Suche.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="activitySearch" className="text-typo-body font-medium">Suche</Label>
-                    <Input
-                      id="activitySearch"
-                      placeholder="Titel, Tags, Region, Beschreibung..."
-                      value={activitySearch}
-                      onChange={(e) => setActivitySearch(e.target.value)}
-                      aria-label="Nach Aktivitäten suchen"
-                    />
+                {/* Filter Toggle Bar */}
+                <div className="flex items-center justify-between gap-3 p-3 rounded-xl border border-border bg-secondary/20">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setFiltersExpanded(!filtersExpanded)}
+                    className="flex items-center gap-2 font-medium"
+                    aria-expanded={filtersExpanded}
+                    aria-controls="filter-panel"
+                  >
+                    <Filter className="w-4 h-4" aria-hidden="true" />
+                    Filter {filtersExpanded ? 'ausblenden' : 'einblenden'}
+                    {filtersExpanded ? (
+                      <ChevronUp className="w-4 h-4" aria-hidden="true" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4" aria-hidden="true" />
+                    )}
+                  </Button>
+                  {activeFilterCount > 0 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={resetFilters}
+                      className="flex items-center gap-1.5"
+                    >
+                      <XCircle className="w-3.5 h-3.5" aria-hidden="true" />
+                      Alle zurücksetzen
+                    </Button>
+                  )}
+                </div>
+
+                {/* Active Filters Summary */}
+                {activeFilterCount > 0 && (
+                  <div className="flex flex-wrap gap-2" role="status" aria-live="polite" aria-label="Aktive Filter">
+                    {activitySearch.trim() && (
+                      <Badge variant="secondary" className="gap-1">
+                        <Search className="w-3 h-3" aria-hidden="true" />
+                        "{activitySearch.trim()}"
+                        <button
+                          type="button"
+                          onClick={() => setActivitySearch('')}
+                          className="ml-1 hover:text-foreground"
+                          aria-label="Suchfilter entfernen"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    )}
+                    {activityRegionFilter.map((region) => (
+                      <Badge key={region} variant="secondary" className="gap-1">
+                        <MapPin className="w-3 h-3" aria-hidden="true" />
+                        {region}
+                        <button
+                          type="button"
+                          onClick={() => setActivityRegionFilter((prev) => prev.filter((r) => r !== region))}
+                          className="ml-1 hover:text-foreground"
+                          aria-label={`Region ${region} entfernen`}
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                    {activityTagFilter.map((tag) => (
+                      <Badge key={tag} variant="secondary" className="gap-1">
+                        <Tag className="w-3 h-3" aria-hidden="true" />
+                        {tag}
+                        <button
+                          type="button"
+                          onClick={() => handleTagRemove(tag)}
+                          className="ml-1 hover:text-foreground"
+                          aria-label={`Tag ${tag} entfernen`}
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                    {activityWeatherFilter !== 'all' && (
+                      <Badge variant="secondary" className="gap-1">
+                        <CloudRain className="w-3 h-3" aria-hidden="true" />
+                        {activityWeatherFilter === 'weather' ? 'Wetterabhängig' : 'Allwetter/Indoor'}
+                        <button
+                          type="button"
+                          onClick={() => setActivityWeatherFilter('all')}
+                          className="ml-1 hover:text-foreground"
+                          aria-label="Wetterfilter entfernen"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    )}
+                    {activitySeasonFilter !== 'all' && (
+                      <Badge variant="secondary" className="gap-1">
+                        <SunSnow className="w-3 h-3" aria-hidden="true" />
+                        {activitySeasonFilter === 'summer' ? 'Sommer' : 'Winter'}
+                        <button
+                          type="button"
+                          onClick={() => setActivitySeasonFilter('all')}
+                          className="ml-1 hover:text-foreground"
+                          aria-label="Saisonfilter entfernen"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    )}
+                    {(activityPriceRange[0] !== priceBounds.min || activityPriceRange[1] !== priceBounds.max) && (
+                      <Badge variant="secondary" className="gap-1">
+                        <Euro className="w-3 h-3" aria-hidden="true" />
+                        €{activityPriceRange[0]} - €{activityPriceRange[1]}
+                        <button
+                          type="button"
+                          onClick={() => setActivityPriceRange([priceBounds.min, priceBounds.max])}
+                          className="ml-1 hover:text-foreground"
+                          aria-label="Preisfilter entfernen"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    )}
                   </div>
-                  <fieldset className="space-y-1.5">
-                    <legend className="text-typo-body font-medium">Regionen</legend>
-                    <div className="flex flex-wrap gap-2" role="group" aria-label="Regionsfilter">
-                      {uniqueRegions.map((regionCode) => (
-                        <Button
-                          key={regionCode}
-                          type="button"
-                          size="sm"
-                          variant={activityRegionFilter.includes(regionCode) ? 'default' : 'outline'}
-                          onClick={() =>
-                            setActivityRegionFilter((prev) =>
-                              prev.includes(regionCode) ? prev.filter((r) => r !== regionCode) : [...prev, regionCode]
-                            )
-                          }
-                          aria-pressed={activityRegionFilter.includes(regionCode)}
-                          aria-label={`Region ${regionCode} ${activityRegionFilter.includes(regionCode) ? 'abwählen' : 'auswählen'}`}
-                        >
-                          {regionCode}
-                        </Button>
-                      ))}
-                    </div>
-                  </fieldset>
-                  <fieldset className="space-y-1.5">
-                    <legend className="text-typo-body font-medium">Tags</legend>
-                    <Tags className="max-w-full">
-                      <TagsTrigger>
-                        {activityTagFilter.map((tag) => (
-                          <TagsValue key={tag} onRemove={() => handleTagRemove(tag)}>
-                            {tag}
-                          </TagsValue>
-                        ))}
-                      </TagsTrigger>
-                      <TagsContent>
-                        <TagsInput placeholder="Tag suchen..." />
-                        <TagsList>
-                          <TagsEmpty />
-                          <TagsGroup>
-                            {uniqueTags.map((tag) => (
-                              <TagsItem key={tag} onSelect={handleTagSelect} value={tag}>
-                                {tag}
-                                {activityTagFilter.includes(tag) && (
-                                  <CheckIcon className="text-muted-foreground" size={14} />
-                                )}
-                              </TagsItem>
+                )}
+
+                {/* Collapsible Filter Panel */}
+                <AnimatePresence initial={false}>
+                  {filtersExpanded && (
+                    <motion.div
+                      id="filter-panel"
+                      initial={prefersReducedMotion ? { opacity: 1, height: 'auto' } : { opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
+                      transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2 }}
+                      className="space-y-4 overflow-hidden"
+                    >
+                      {/* Search Bar */}
+                      <div className="space-y-2">
+                        <Label htmlFor="activitySearch" className="text-typo-body font-medium flex items-center gap-2">
+                          <Search className="w-4 h-4 text-primary" aria-hidden="true" />
+                          Suche
+                        </Label>
+                        <Input
+                          id="activitySearch"
+                          placeholder="Titel, Tags, Region, Beschreibung..."
+                          value={activitySearch}
+                          onChange={(e) => setActivitySearch(e.target.value)}
+                          aria-label="Nach Aktivitäten suchen"
+                          className="h-10"
+                        />
+                      </div>
+
+                      {/* Main Filters Grid */}
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        {/* Regions */}
+                        <fieldset className="space-y-2 p-4 rounded-xl border border-border bg-secondary/10">
+                          <legend className="text-typo-body font-medium flex items-center gap-2 px-2">
+                            <MapPin className="w-4 h-4 text-primary" aria-hidden="true" />
+                            Regionen
+                          </legend>
+                          <div className="flex flex-wrap gap-2" role="group" aria-label="Regionsfilter">
+                            {uniqueRegions.map((regionCode) => (
+                              <Button
+                                key={regionCode}
+                                type="button"
+                                size="sm"
+                                variant={activityRegionFilter.includes(regionCode) ? 'default' : 'outline'}
+                                onClick={() =>
+                                  setActivityRegionFilter((prev) =>
+                                    prev.includes(regionCode) ? prev.filter((r) => r !== regionCode) : [...prev, regionCode]
+                                  )
+                                }
+                                aria-pressed={activityRegionFilter.includes(regionCode)}
+                                aria-label={`Region ${regionCode} ${activityRegionFilter.includes(regionCode) ? 'abwählen' : 'auswählen'}`}
+                              >
+                                {regionCode}
+                              </Button>
                             ))}
-                          </TagsGroup>
-                        </TagsList>
-                      </TagsContent>
-                    </Tags>
-                  </fieldset>
-                </div>
+                          </div>
+                        </fieldset>
 
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  <fieldset className="space-y-1.5">
-                    <legend className="text-typo-body font-medium">Wetter</legend>
-                    <div className="flex flex-wrap gap-2" role="group" aria-label="Wetterabhängigkeit">
-                      {[
-                        { key: 'all', label: 'Alle' },
-                        { key: 'weather', label: 'Wetterabhängig' },
-                        { key: 'indoor', label: 'Allwetter / Indoor' },
-                      ].map((opt) => (
-                        <Button
-                          key={opt.key}
-                          type="button"
-                          size="sm"
-                          variant={activityWeatherFilter === opt.key ? 'default' : 'outline'}
-                          onClick={() => setActivityWeatherFilter(opt.key as typeof activityWeatherFilter)}
-                          aria-pressed={activityWeatherFilter === opt.key}
-                        >
-                          {opt.label}
-                        </Button>
-                      ))}
-                    </div>
-                  </fieldset>
+                        {/* Tags */}
+                        <fieldset className="space-y-2 p-4 rounded-xl border border-border bg-secondary/10">
+                          <legend className="text-typo-body font-medium flex items-center gap-2 px-2">
+                            <Tag className="w-4 h-4 text-primary" aria-hidden="true" />
+                            Tags
+                          </legend>
+                          <Tags className="max-w-full">
+                            <TagsTrigger>
+                              {activityTagFilter.map((tag) => (
+                                <TagsValue key={tag} onRemove={() => handleTagRemove(tag)}>
+                                  {tag}
+                                </TagsValue>
+                              ))}
+                            </TagsTrigger>
+                            <TagsContent>
+                              <TagsInput placeholder="Tag suchen..." />
+                              <TagsList>
+                                <TagsEmpty />
+                                <TagsGroup>
+                                  {uniqueTags.map((tag) => (
+                                    <TagsItem key={tag} onSelect={handleTagSelect} value={tag}>
+                                      {tag}
+                                      {activityTagFilter.includes(tag) && (
+                                        <CheckIcon className="text-muted-foreground" size={14} />
+                                      )}
+                                    </TagsItem>
+                                  ))}
+                                </TagsGroup>
+                              </TagsList>
+                            </TagsContent>
+                          </Tags>
+                        </fieldset>
 
-                  <fieldset className="space-y-1.5">
-                    <legend className="text-typo-body font-medium">Saison</legend>
-                    <div className="flex flex-wrap gap-2" role="group" aria-label="Saisonfilter">
-                      {[
-                        { key: 'all', label: 'Alle' },
-                        { key: 'summer', label: 'Sommer' },
-                        { key: 'winter', label: 'Winter' },
-                      ].map((opt) => (
-                        <Button
-                          key={opt.key}
-                          type="button"
-                          size="sm"
-                          variant={activitySeasonFilter === opt.key ? 'default' : 'outline'}
-                          onClick={() => setActivitySeasonFilter(opt.key as typeof activitySeasonFilter)}
-                          aria-pressed={activitySeasonFilter === opt.key}
-                        >
-                          {opt.label}
-                        </Button>
-                      ))}
-                    </div>
-                  </fieldset>
+                        {/* Weather */}
+                        <fieldset className="space-y-2 p-4 rounded-xl border border-border bg-secondary/10">
+                          <legend className="text-typo-body font-medium flex items-center gap-2 px-2">
+                            <CloudRain className="w-4 h-4 text-primary" aria-hidden="true" />
+                            Wetter
+                          </legend>
+                          <div className="flex flex-wrap gap-2" role="group" aria-label="Wetterabhängigkeit">
+                            {[
+                              { key: 'all', label: 'Alle' },
+                              { key: 'weather', label: 'Wetterabhängig' },
+                              { key: 'indoor', label: 'Allwetter / Indoor' },
+                            ].map((opt) => (
+                              <Button
+                                key={opt.key}
+                                type="button"
+                                size="sm"
+                                variant={activityWeatherFilter === opt.key ? 'default' : 'outline'}
+                                onClick={() => setActivityWeatherFilter(opt.key as typeof activityWeatherFilter)}
+                                aria-pressed={activityWeatherFilter === opt.key}
+                              >
+                                {opt.label}
+                              </Button>
+                            ))}
+                          </div>
+                        </fieldset>
 
-                  <fieldset className="space-y-1.5">
-                    <legend className="text-typo-body font-medium">Preis p.P. (€)</legend>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1">
-                          <Label htmlFor="priceMin" className="text-typo-body text-muted-foreground">Min</Label>
-                          <Input
-                            id="priceMin"
-                            type="number"
-                            min={priceBounds.min}
-                            max={activityPriceRange[1]}
-                            value={activityPriceRange[0]}
-                            onChange={(e) =>
-                              setActivityPriceRange((prev) => {
-                                const next = [Number(e.target.value) || 0, prev[1]] as [number, number];
-                                if (next[0] > next[1]) next[1] = next[0];
-                                return next;
-                              })
-                            }
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <Label htmlFor="priceMax" className="text-typo-body text-muted-foreground">Max</Label>
-                          <Input
-                            id="priceMax"
-                            type="number"
-                            min={activityPriceRange[0]}
-                            max={priceBounds.max || undefined}
-                            value={activityPriceRange[1]}
-                            onChange={(e) =>
-                              setActivityPriceRange((prev) => {
-                                const next = [prev[0], Number(e.target.value) || prev[0]] as [number, number];
-                                if (next[1] < next[0]) next[0] = next[1];
-                                return next;
-                              })
-                            }
-                          />
-                        </div>
+                        {/* Season */}
+                        <fieldset className="space-y-2 p-4 rounded-xl border border-border bg-secondary/10">
+                          <legend className="text-typo-body font-medium flex items-center gap-2 px-2">
+                            <SunSnow className="w-4 h-4 text-primary" aria-hidden="true" />
+                            Saison
+                          </legend>
+                          <div className="flex flex-wrap gap-2" role="group" aria-label="Saisonfilter">
+                            {[
+                              { key: 'all', label: 'Alle' },
+                              { key: 'summer', label: 'Sommer' },
+                              { key: 'winter', label: 'Winter' },
+                            ].map((opt) => (
+                              <Button
+                                key={opt.key}
+                                type="button"
+                                size="sm"
+                                variant={activitySeasonFilter === opt.key ? 'default' : 'outline'}
+                                onClick={() => setActivitySeasonFilter(opt.key as typeof activitySeasonFilter)}
+                                aria-pressed={activitySeasonFilter === opt.key}
+                              >
+                                {opt.label}
+                              </Button>
+                            ))}
+                          </div>
+                        </fieldset>
                       </div>
-                      <div className="text-typo-body text-muted-foreground flex justify-between">
-                        <span>von {priceBounds.min || 0}€</span>
-                        <span>bis {priceBounds.max || 0}€</span>
-                      </div>
-                    </div>
-                  </fieldset>
-                </div>
+
+                      {/* Price Range */}
+                      <fieldset className="space-y-3 p-4 rounded-xl border border-border bg-secondary/10">
+                        <legend className="text-typo-body font-medium flex items-center gap-2 px-2">
+                          <Euro className="w-4 h-4 text-primary" aria-hidden="true" />
+                          Preis pro Person
+                        </legend>
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1.5">
+                              <Label htmlFor="priceMin" className="text-sm text-muted-foreground">Minimum (€)</Label>
+                              <Input
+                                id="priceMin"
+                                type="number"
+                                min={priceBounds.min}
+                                max={activityPriceRange[1]}
+                                value={activityPriceRange[0]}
+                                onChange={(e) =>
+                                  setActivityPriceRange((prev) => {
+                                    const next = [Number(e.target.value) || 0, prev[1]] as [number, number];
+                                    if (next[0] > next[1]) next[1] = next[0];
+                                    return next;
+                                  })
+                                }
+                                className="h-9"
+                              />
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label htmlFor="priceMax" className="text-sm text-muted-foreground">Maximum (€)</Label>
+                              <Input
+                                id="priceMax"
+                                type="number"
+                                min={activityPriceRange[0]}
+                                max={priceBounds.max || undefined}
+                                value={activityPriceRange[1]}
+                                onChange={(e) =>
+                                  setActivityPriceRange((prev) => {
+                                    const next = [prev[0], Number(e.target.value) || prev[0]] as [number, number];
+                                    if (next[1] < next[0]) next[0] = next[1];
+                                    return next;
+                                  })
+                                }
+                                className="h-9"
+                              />
+                            </div>
+                          </div>
+                          <div className="text-sm text-muted-foreground flex justify-between px-1">
+                            <span>Verfügbar: €{priceBounds.min || 0}</span>
+                            <span>bis €{priceBounds.max || 0}</span>
+                          </div>
+                        </div>
+                      </fieldset>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 {activityTabLoading ? (
                   <div className="text-center py-12 rounded-xl border border-border bg-secondary/20" role="status" aria-live="polite">
