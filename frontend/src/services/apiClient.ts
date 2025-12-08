@@ -322,6 +322,20 @@ export const createCampaign = async (payload: CreateCampaignInput): Promise<Camp
     description: option.description,
     is_mystery: option.is_mystery,
     season: option.season,
+    short_description: option.short_description,
+    long_description: option.long_description,
+    physical_intensity: option.physical_intensity,
+    mental_challenge: option.mental_challenge,
+    social_interaction_level: option.social_interaction_level,
+    price_comment: option.price_comment,
+    external_rating: option.external_rating,
+    lead_time_min_days: option.lead_time_min_days,
+    travel_time_from_office_minutes: option.travel_time_from_office_minutes,
+    address: option.address,
+    website: option.website,
+    provider: option.provider,
+    phone: option.phone,
+    email: option.email,
   });
 
   const baseEvents = event_options?.length ? event_options : resolvedEvents.options;

@@ -14,6 +14,20 @@ export interface EventOption {
   description?: string;
   is_mystery?: boolean;
   season?: 'summer' | 'winter' | 'all_year';
+  short_description?: string;
+  long_description?: string;
+  physical_intensity?: number;
+  mental_challenge?: number;
+  social_interaction_level?: number;
+  price_comment?: string;
+  external_rating?: number;
+  lead_time_min_days?: number;
+  travel_time_from_office_minutes?: number;
+  address?: string;
+  website?: string;
+  provider?: string;
+  phone?: string;
+  email?: string;
 }
 
 export interface StretchGoal {

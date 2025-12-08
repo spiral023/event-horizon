@@ -13,12 +13,9 @@ import {
   X,
   Loader2,
   AlertCircle,
-  MapPin,
   Users,
   CloudRain,
   SunSnow,
-  ShieldCheck,
-  HelpCircle,
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toBlob } from 'html-to-image';
@@ -40,7 +37,7 @@ import { useAppStore } from '@/store/appStore';
 import type { Campaign, TeamAnalytics, Availability, EventOption } from '@/types/domain';
 import { toast } from 'sonner';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { sanitizeName, sanitizeText, sanitizeStringArray } from '@/lib/sanitize';
+import { sanitizeName, sanitizeStringArray } from '@/lib/sanitize';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import {
   Tags,
@@ -54,6 +51,7 @@ import {
   TagsValue,
 } from "@/components/kibo-ui/tags";
 import { CheckIcon } from 'lucide-react';
+import { EventDetailView } from '@/components/EventDetailView';
 
 const CampaignDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -101,6 +99,7 @@ const CampaignDetail = () => {
     };
     fetchData();
   }, [id]);
+
   useEffect(() => {
     const loadActivities = async () => {
       setActivityTabLoading(true);
@@ -152,6 +151,15 @@ const CampaignDetail = () => {
       toast.error('Fehler beim Speichern');
     }
   }, [id]);
+
+  const handleVote = useCallback((event: EventOption) => {
+    toast.success(`'${event.title}' für Voting ausgewählt!`);
+    setSelectedActivity(null);
+  }, []);
+
+  const handleWatchlist = useCallback((event: EventOption) => {
+    toast.success(`'${event.title}' auf der Watchlist!`);
+  }, []);
 
   // All memoized values - must be before conditional returns
   const fundingPercentage = useMemo(() => campaign ? getFundingPercentage(campaign) : 0, [campaign]);
@@ -1049,109 +1057,14 @@ const CampaignDetail = () => {
             </Card>
 
             <Dialog open={!!selectedActivity} onOpenChange={(open) => !open && setSelectedActivity(null)}>
-              <DialogContent className="sm:max-w-lg">
+              <DialogContent className="max-w-5xl h-[90vh] p-0 gap-0 overflow-hidden bg-background">
                 {selectedActivity && (
-                  <div className="space-y-4">
-                    <DialogHeader>
-                      <DialogTitle className="font-display text-typo-h2" id="activity-dialog-title">{selectedActivity.title}</DialogTitle>
-                      <DialogDescription className="text-typo-body" id="activity-dialog-description">
-                        {selectedActivity.category} • {selectedActivity.location_region}
-                      </DialogDescription>
-                      {selectedActivity.is_mystery && (
-                        <Badge variant="warning" className="w-fit">Mystery-Event</Badge>
-                      )}
-                    </DialogHeader>
-                    {selectedActivity.image_url && (
-                      <div
-                        className="w-full h-48 rounded-lg bg-cover bg-center"
-                        style={{
-                          backgroundImage: `linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.2)), url(${selectedActivity.image_url})`,
-                        }}
-                        role="img"
-                        aria-label={`Bild für ${selectedActivity.title}`}
-                      />
-                    )}
-                    <div className="space-y-3">
-                      <div>
-                        <h4 className="text-typo-h3 mb-1">Beschreibung</h4>
-                        <p className="text-typo-body text-muted-foreground">
-                          {selectedActivity.description || 'Keine Beschreibung vorhanden.'}
-                        </p>
-                      </div>
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
-                          <MapPin className="w-4 h-4 text-primary" aria-hidden="true" />
-                          <div>
-                            <p className="text-typo-body text-muted-foreground">Region</p>
-                            <p className="text-typo-body font-semibold">{selectedActivity.location_region}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
-                          <Users className="w-4 h-4 text-primary" aria-hidden="true" />
-                          <div>
-                            <p className="text-typo-body text-muted-foreground">Mindestteilnehmer</p>
-                            <p className="text-typo-body font-semibold">
-                              {selectedActivity.min_participants ? `${selectedActivity.min_participants}+ Personen` : 'Flexibel'}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
-                          <CloudRain className="w-4 h-4 text-primary" aria-hidden="true" />
-                          <div>
-                            <p className="text-typo-body text-muted-foreground">Wetter</p>
-                            <p className="text-typo-body font-semibold">
-                              {selectedActivity.weather_dependent ? 'Wetterabhängig / Outdoor' : 'Allwetter oder Indoor'}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
-                          <SunSnow className="w-4 h-4 text-primary" aria-hidden="true" />
-                          <div>
-                            <p className="text-typo-body text-muted-foreground">Saison</p>
-                            <p className="text-typo-body font-semibold">{formatSeason(selectedActivity.season)}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
-                          <BarChart3 className="w-4 h-4 text-primary" aria-hidden="true" />
-                          <div>
-                            <p className="text-typo-body text-muted-foreground">Kategorie</p>
-                            <p className="text-typo-body font-semibold">{selectedActivity.category}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
-                          <HelpCircle className="w-4 h-4 text-primary" aria-hidden="true" />
-                          <div>
-                            <p className="text-typo-body text-muted-foreground">Preis pro Person</p>
-                            <p className="text-typo-h3 leading-tight">€{Math.round(selectedActivity.est_price_pp)}</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <ShieldCheck className="w-4 h-4 text-primary" aria-hidden="true" />
-                        {selectedActivity.accessibility_flags?.length ? (
-                          selectedActivity.accessibility_flags.map((flag) => (
-                            <Badge key={flag} variant="secondary">
-                              {accessibilityLabel(flag)}
-                            </Badge>
-                          ))
-                        ) : (
-                          <span className="text-typo-body text-muted-foreground">Keine speziellen Accessibility-Hinweise</span>
-                        )}
-                      </div>
-                      {selectedActivity.tags?.length > 0 && (
-                        <div>
-                          <h4 className="text-typo-h3 mb-2">Tags</h4>
-                          <div className="flex flex-wrap gap-2" role="list" aria-label="Event-Tags">
-                            {selectedActivity.tags.map((tag) => (
-                              <Badge key={tag} variant="secondary" className="text-typo-body" role="listitem">
-                                {tag}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  <EventDetailView
+                    event={selectedActivity}
+                    onClose={() => setSelectedActivity(null)}
+                    onVote={handleVote}
+                    onWatchlist={handleWatchlist}
+                  />
                 )}
               </DialogContent>
             </Dialog>
