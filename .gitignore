@@ -34,3 +34,5 @@ __pycache__/
 *.pyc
 backend/app/core/__pycache__/
 backend/.env
+events_export_new.csv
+events_export_new2.csv

@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from app.models import BadgeType, CampaignStatus, EventCategory
+from app.models import BadgeType, CampaignStatus, EventCategory, PrimaryGoal, RiskLevel
 
 
 class EventOptionBase(BaseModel):
@@ -29,12 +29,19 @@ class EventOptionBase(BaseModel):
     price_comment: Optional[str] = None
     external_rating: Optional[float] = Field(default=None, ge=1.0, le=5.0)
     lead_time_min_days: Optional[int] = Field(default=None, ge=0)
+    risk_level: Optional[RiskLevel] = None
     travel_time_from_office_minutes: Optional[int] = Field(default=None, ge=0)
+    travel_time_from_office_minutes_walking: Optional[int] = Field(default=None, ge=0)
     address: Optional[str] = None
     website: Optional[str] = None
     provider: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[str] = None
+    primary_goal: Optional[PrimaryGoal] = None
+    competition_level: Optional[int] = Field(default=None, ge=1, le=5)
+    typical_duration_hours: Optional[float] = Field(default=None, ge=0)
+    recommended_group_size_min: Optional[int] = Field(default=None, ge=1)
+    recommended_group_size_max: Optional[int] = Field(default=None, ge=1)
 
     @field_validator('title')
     @classmethod

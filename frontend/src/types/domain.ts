@@ -23,11 +23,17 @@ export interface EventOption {
   external_rating?: number;
   lead_time_min_days?: number;
   travel_time_from_office_minutes?: number;
+  travel_time_from_office_minutes_walking?: number;
   address?: string;
   website?: string;
   provider?: string;
   phone?: string;
   email?: string;
+  primary_goal?: 'fun' | 'teambuilding' | 'reward' | 'networking' | 'learning' | 'creativity';
+  competition_level?: number;
+  typical_duration_hours?: number;
+  recommended_group_size_min?: number;
+  recommended_group_size_max?: number;
 }
 
 export interface StretchGoal {

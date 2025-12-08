@@ -48,16 +48,25 @@ class Campaign(SQLModel, table=True):
 
 
 class EventCategory(str, Enum):
-    action = "Action"
-    food = "Food"
-    relax = "Relax"
-    party = "Party"
+    action = "action"
+    food = "food"
+    relax = "relax"
+    party = "party"
 
 
 class RiskLevel(str, Enum):
     low = "low"
     medium = "medium"
     high = "high"
+
+
+class PrimaryGoal(str, Enum):
+    fun = "fun"
+    teambuilding = "teambuilding"
+    reward = "reward"
+    networking = "networking"
+    learning = "learning"
+    creativity = "creativity"
 
 
 class EventOptionBase(SQLModel):
@@ -84,11 +93,17 @@ class EventOptionBase(SQLModel):
     lead_time_min_days: Optional[int] = Field(default=None, ge=0)
     risk_level: Optional[RiskLevel] = None
     travel_time_from_office_minutes: Optional[int] = Field(default=None, ge=0)
+    travel_time_from_office_minutes_walking: Optional[int] = Field(default=None, ge=0)
     address: Optional[str] = None
     website: Optional[str] = None
     provider: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[str] = None
+    primary_goal: Optional[PrimaryGoal] = None
+    competition_level: Optional[int] = Field(default=None, ge=1, le=5)
+    typical_duration_hours: Optional[float] = Field(default=None, ge=0)
+    recommended_group_size_min: Optional[int] = Field(default=None, ge=1)
+    recommended_group_size_max: Optional[int] = Field(default=None, ge=1)
 
 
 class EventOption(EventOptionBase, table=True):

@@ -19,7 +19,11 @@ import {
   Heart,
   CalendarDays,
   X,
-  Navigation
+  Navigation,
+  Footprints,
+  Trophy,
+  Target,
+  Timer,
 } from 'lucide-react';
 import { EventOption } from '@/types/domain';
 import { Badge } from '@/components/ui/badge';
@@ -98,6 +102,18 @@ export const EventDetailView: React.FC<EventDetailViewProps> = ({
     }
   };
 
+  const formatPrimaryGoal = (goal?: string) => {
+    switch (goal) {
+      case 'fun': return 'Spaß';
+      case 'teambuilding': return 'Teambuilding';
+      case 'reward': return 'Belohnung';
+      case 'networking': return 'Networking';
+      case 'learning': return 'Lernen';
+      case 'creativity': return 'Kreativität';
+      default: return null;
+    }
+  };
+
   const seasonInfo = formatSeason(event.season);
 
   return (
@@ -144,6 +160,12 @@ export const EventDetailView: React.FC<EventDetailViewProps> = ({
                     {event.weather_dependent ? <Sun className="w-3.5 h-3.5" /> : <CloudRain className="w-3.5 h-3.5" />}
                     {event.weather_dependent ? 'Wetterabhängig' : 'Allwetter / Indoor'}
                 </Badge>
+                {event.primary_goal && (
+                  <Badge variant="outline" className="bg-primary/20 backdrop-blur-md border-primary/30 text-white flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium">
+                    <Target className="w-3.5 h-3.5" />
+                    {formatPrimaryGoal(event.primary_goal)}
+                  </Badge>
+                )}
             </div>
 
             {/* Title & Short Description */}
@@ -166,7 +188,7 @@ export const EventDetailView: React.FC<EventDetailViewProps> = ({
         <div className="lg:col-span-8 space-y-10">
             
              {/* 2. Auf einen Blick Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <Card className="bg-secondary/30 border-border/50 shadow-sm hover:bg-secondary/50 transition-colors">
                     <CardContent className="p-5 flex items-center gap-4">
                          <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
@@ -180,16 +202,46 @@ export const EventDetailView: React.FC<EventDetailViewProps> = ({
                          </div>
                     </CardContent>
                 </Card>
-                 <Card className="bg-secondary/30 border-border/50 shadow-sm hover:bg-secondary/50 transition-colors">
+                <Card className="bg-secondary/30 border-border/50 shadow-sm hover:bg-secondary/50 transition-colors">
                     <CardContent className="p-5 flex items-center gap-4">
                          <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
                             <Clock className="w-5 h-5" />
                          </div>
                          <div>
-                             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">Anreise (Office)</p>
+                             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">Anreise (Auto)</p>
                              <p className="font-semibold text-foreground text-lg leading-tight">
-                                {event.travel_time_from_office_minutes !== undefined && event.travel_time_from_office_minutes !== null 
-                                  ? `${event.travel_time_from_office_minutes} Min.` 
+                                {event.travel_time_from_office_minutes !== undefined && event.travel_time_from_office_minutes !== null
+                                  ? `${event.travel_time_from_office_minutes} Min.`
+                                  : 'k.A.'}
+                             </p>
+                         </div>
+                    </CardContent>
+                </Card>
+                <Card className="bg-secondary/30 border-border/50 shadow-sm hover:bg-secondary/50 transition-colors">
+                    <CardContent className="p-5 flex items-center gap-4">
+                         <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                            <Footprints className="w-5 h-5" />
+                         </div>
+                         <div>
+                             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">Anreise (zu Fuß)</p>
+                             <p className="font-semibold text-foreground text-lg leading-tight">
+                                {event.travel_time_from_office_minutes_walking !== undefined && event.travel_time_from_office_minutes_walking !== null
+                                  ? `${event.travel_time_from_office_minutes_walking} Min.`
+                                  : 'k.A.'}
+                             </p>
+                         </div>
+                    </CardContent>
+                </Card>
+                <Card className="bg-secondary/30 border-border/50 shadow-sm hover:bg-secondary/50 transition-colors">
+                    <CardContent className="p-5 flex items-center gap-4">
+                         <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                            <Timer className="w-5 h-5" />
+                         </div>
+                         <div>
+                             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">Dauer</p>
+                             <p className="font-semibold text-foreground text-lg leading-tight">
+                                {event.typical_duration_hours !== undefined && event.typical_duration_hours !== null
+                                  ? `${event.typical_duration_hours}h`
                                   : 'k.A.'}
                              </p>
                          </div>
@@ -210,30 +262,45 @@ export const EventDetailView: React.FC<EventDetailViewProps> = ({
                 </div>
                 
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-1">
-                    <SegmentedMeter 
-                        label="Körperliche Intensität" 
-                        value={event.physical_intensity ?? 0} 
-                        colorClass={getIntensityColor(event.physical_intensity ?? 0)} 
+                    <SegmentedMeter
+                        label="Körperliche Intensität"
+                        value={event.physical_intensity ?? 0}
+                        colorClass={getIntensityColor(event.physical_intensity ?? 0)}
                     />
-                    
-                    <SegmentedMeter 
-                        label="Mentale Challenge" 
-                        value={event.mental_challenge ?? 0} 
-                        colorClass="bg-blue-500" 
+
+                    <SegmentedMeter
+                        label="Mentale Challenge"
+                        value={event.mental_challenge ?? 0}
+                        colorClass="bg-blue-500"
                     />
-                    
+
                     <div className="space-y-2">
-                         <SegmentedMeter 
-                            label="Social Interaction Level" 
-                            value={event.social_interaction_level ?? 0} 
-                            colorClass="bg-violet-500" 
+                         <SegmentedMeter
+                            label="Social Interaction Level"
+                            value={event.social_interaction_level ?? 0}
+                            colorClass="bg-violet-500"
                         />
                         <p className="text-sm text-muted-foreground italic">
-                            {(event.social_interaction_level ?? 0) > 3 
-                                ? '💡 Fördert aktives Teambuilding & Kommunikation' 
+                            {(event.social_interaction_level ?? 0) > 3
+                                ? '💡 Fördert aktives Teambuilding & Kommunikation'
                                 : '💡 Lockerer Austausch, weniger gruppendynamisch'}
                         </p>
                     </div>
+
+                    {event.competition_level !== undefined && event.competition_level !== null && (
+                      <div className="space-y-2">
+                        <SegmentedMeter
+                          label="Wettbewerbs-Level"
+                          value={event.competition_level}
+                          colorClass="bg-amber-500"
+                        />
+                        <p className="text-sm text-muted-foreground italic">
+                          {event.competition_level > 3
+                            ? '🏆 Stark kompetitiv - Bringt den Wettkampfgeist hervor'
+                            : '✌️ Wenig bis kein Wettbewerb - Entspannt und kooperativ'}
+                        </p>
+                      </div>
+                    )}
                 </div>
             </div>
 
@@ -242,7 +309,7 @@ export const EventDetailView: React.FC<EventDetailViewProps> = ({
                 <h3 className="text-2xl font-display font-bold">Planung & Details</h3>
                 <Card className="overflow-hidden border-border/60">
                     <CardContent className="p-0">
-                        <div className="grid sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-border/60">
+                        <div className="grid sm:grid-cols-2 lg:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-border/60">
                             <div className="p-6 space-y-2">
                                  <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium uppercase tracking-wider">
                                      <CalendarDays className="w-4 h-4" />
@@ -255,12 +322,27 @@ export const EventDetailView: React.FC<EventDetailViewProps> = ({
                              <div className="p-6 space-y-2">
                                  <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium uppercase tracking-wider">
                                      <Users className="w-4 h-4" />
-                                     Teilnehmergröße
+                                     Minimale Teilnehmer
                                  </div>
                                  <p className="font-semibold text-xl">
-                                     {event.min_participants ? `Ab ${event.min_participants} Personen` : 'Keine Mindestanzahl'}
+                                     {event.min_participants ? `${event.min_participants} Personen` : 'Keine Mindestanzahl'}
                                  </p>
                             </div>
+                            {(event.recommended_group_size_min || event.recommended_group_size_max) && (
+                              <div className="p-6 space-y-2">
+                                   <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium uppercase tracking-wider">
+                                       <Users className="w-4 h-4" />
+                                       Empfohlene Gruppengröße
+                                   </div>
+                                   <p className="font-semibold text-xl">
+                                       {event.recommended_group_size_min && event.recommended_group_size_max
+                                         ? `${event.recommended_group_size_min}–${event.recommended_group_size_max} Personen`
+                                         : event.recommended_group_size_min
+                                         ? `Ab ${event.recommended_group_size_min} Personen`
+                                         : `Bis ${event.recommended_group_size_max} Personen`}
+                                   </p>
+                              </div>
+                            )}
                         </div>
                         {event.price_comment && (
                             <div className="bg-secondary/20 p-4 border-t border-border/60 flex gap-3">

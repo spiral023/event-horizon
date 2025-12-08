@@ -22,6 +22,20 @@ class EventCategory:
         return [cls.action, cls.relax, cls.food, cls.party]
 
 
+class PrimaryGoal:
+    """Primary Goals für Validierung"""
+    fun = "fun"
+    teambuilding = "teambuilding"
+    reward = "reward"
+    networking = "networking"
+    learning = "learning"
+    creativity = "creativity"
+
+    @classmethod
+    def all(cls):
+        return [cls.fun, cls.teambuilding, cls.reward, cls.networking, cls.learning, cls.creativity]
+
+
 def validate_event(event: Dict[str, Any], row_num: int) -> List[str]:
     """
     Validiert einen Event-Eintrag.
@@ -58,8 +72,13 @@ def validate_event(event: Dict[str, Any], row_num: int) -> List[str]:
         if event['risk_level'] not in valid_risk_levels:
             errors.append(f"Zeile {row_num}: Ungültiges Risk Level '{event['risk_level']}'. Erlaubt: {', '.join(valid_risk_levels)}")
 
+    # Primary Goal validieren (optional)
+    if event.get('primary_goal'):
+        if event['primary_goal'] not in PrimaryGoal.all():
+            errors.append(f"Zeile {row_num}: Ungültiges Primary Goal '{event['primary_goal']}'. Erlaubt: {', '.join(PrimaryGoal.all())}")
+
     # Intensitäts-Level validieren (optional)
-    for field in ['physical_intensity', 'mental_challenge', 'social_interaction_level']:
+    for field in ['physical_intensity', 'mental_challenge', 'social_interaction_level', 'competition_level']:
         if event.get(field):
             try:
                 value = int(event[field])
@@ -85,12 +104,13 @@ def validate_event(event: Dict[str, Any], row_num: int) -> List[str]:
     except (ValueError, TypeError):
         errors.append(f"Zeile {row_num}: Ungültiger Preis '{event.get('est_price_pp')}'")
 
-    # min_participants ist optional
+    # min_participants ist optional (0 bedeutet "nicht gesetzt")
     if event.get('min_participants'):
         try:
             participants = int(event.get('min_participants', 0))
-            if participants <= 0:
-                errors.append(f"Zeile {row_num}: Minimale Teilnehmer muss größer als 0 sein")
+            # 0 ist ok (bedeutet nicht gesetzt), nur negative Werte sind ungültig
+            if participants < 0:
+                errors.append(f"Zeile {row_num}: Minimale Teilnehmer darf nicht negativ sein")
         except (ValueError, TypeError):
             errors.append(f"Zeile {row_num}: Ungültige Teilnehmerzahl '{event.get('min_participants')}'")
 
@@ -182,6 +202,20 @@ def parse_csv(csv_path: str) -> Dict[str, List[Dict[str, Any]]]:
                 event['phone'] = phone
             if row.get('email', '').strip():
                 event['email'] = row.get('email', '').strip()
+            if row.get('travel_time_from_office_minutes_walking', '').strip():
+                event['travel_time_from_office_minutes_walking'] = int(row.get('travel_time_from_office_minutes_walking', '0'))
+            if row.get('primary_goal', '').strip():
+                event['primary_goal'] = row.get('primary_goal', '').strip()
+            if row.get('competition_level', '').strip():
+                event['competition_level'] = int(row.get('competition_level', '0'))
+            if row.get('typical_duration_hours', '').strip():
+                # Deutsche Dezimalformate (Komma) in Punkt konvertieren
+                duration_str = row.get('typical_duration_hours', '0').replace(',', '.')
+                event['typical_duration_hours'] = float(duration_str)
+            if row.get('recommended_group_size_min', '').strip():
+                event['recommended_group_size_min'] = int(row.get('recommended_group_size_min', '0'))
+            if row.get('recommended_group_size_max', '').strip():
+                event['recommended_group_size_max'] = int(row.get('recommended_group_size_max', '0'))
 
             # Validieren
             errors = validate_event(event, row_num)
@@ -243,8 +277,10 @@ def generate_event_dict(event: Dict[str, Any], indent: int = 12) -> str:
         'short_description', 'long_description', 'physical_intensity',
         'mental_challenge', 'social_interaction_level', 'price_comment',
         'external_rating', 'lead_time_min_days', 'risk_level',
-        'travel_time_from_office_minutes', 'address', 'website',
-        'provider', 'phone', 'email'
+        'travel_time_from_office_minutes', 'travel_time_from_office_minutes_walking',
+        'address', 'website', 'provider', 'phone', 'email',
+        'primary_goal', 'competition_level', 'typical_duration_hours',
+        'recommended_group_size_min', 'recommended_group_size_max'
     ]
 
     for field in field_order:
@@ -265,6 +301,10 @@ def generate_event_dict(event: Dict[str, Any], indent: int = 12) -> str:
         if field == 'category':
             if value:  # Nur wenn category vorhanden ist
                 lines.append(f"{indent_str}    {field}=EventCategory.{value},")
+        # Spezielle Formatierung für primary_goal (als PrimaryGoal.xyz)
+        elif field == 'primary_goal':
+            if value:  # Nur wenn vorhanden
+                lines.append(f"{indent_str}    {field}=PrimaryGoal.{value},")
         # Spezielle Formatierung für Preis und Teilnehmer (als int)
         elif field == 'est_price_pp':
             lines.append(f"{indent_str}    {field}={int(float(value))},")
@@ -273,10 +313,12 @@ def generate_event_dict(event: Dict[str, Any], indent: int = 12) -> str:
                 lines.append(f"{indent_str}    {field}={int(value)},")
         # Intensitäts- und Zeit-Felder (als int)
         elif field in ['physical_intensity', 'mental_challenge', 'social_interaction_level',
-                      'lead_time_min_days', 'travel_time_from_office_minutes']:
+                      'lead_time_min_days', 'travel_time_from_office_minutes',
+                      'travel_time_from_office_minutes_walking', 'competition_level',
+                      'recommended_group_size_min', 'recommended_group_size_max']:
             lines.append(f"{indent_str}    {field}={int(value)},")
-        # Rating (als float)
-        elif field == 'external_rating':
+        # Rating und Duration (als float)
+        elif field in ['external_rating', 'typical_duration_hours']:
             lines.append(f"{indent_str}    {field}={float(value)},")
         # Normale Formatierung
         else:

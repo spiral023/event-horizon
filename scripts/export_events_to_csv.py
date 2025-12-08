@@ -32,8 +32,9 @@ def extract_seeds_from_database_py(database_path: Path) -> Dict[str, List[Dict[s
     # Extrahiere die komplette Dictionary-Struktur
     seeds_code = "seeds_by_region = {" + match.group(1) + "\n    }"
 
-    # Ersetze EventCategory.xyz mit Strings
+    # Ersetze EventCategory.xyz und PrimaryGoal.xyz mit Strings
     seeds_code = re.sub(r'EventCategory\.(\w+)', r'"\1"', seeds_code)
+    seeds_code = re.sub(r'PrimaryGoal\.(\w+)', r'"\1"', seeds_code)
 
     # Erstelle einen sicheren Namespace für eval
     namespace = {
@@ -120,11 +121,17 @@ def export_to_csv(output_path: str = "events_export.csv", database_path: Path = 
         "lead_time_min_days",
         "risk_level",
         "travel_time_from_office_minutes",
+        "travel_time_from_office_minutes_walking",
         "address",
         "website",
         "provider",
         "phone",
-        "email"
+        "email",
+        "primary_goal",
+        "competition_level",
+        "typical_duration_hours",
+        "recommended_group_size_min",
+        "recommended_group_size_max"
     ]
 
     # CSV-Datei schreiben
@@ -158,11 +165,17 @@ def export_to_csv(output_path: str = "events_export.csv", database_path: Path = 
                 "lead_time_min_days": event.get("lead_time_min_days", ""),
                 "risk_level": event.get("risk_level", ""),
                 "travel_time_from_office_minutes": event.get("travel_time_from_office_minutes", ""),
+                "travel_time_from_office_minutes_walking": event.get("travel_time_from_office_minutes_walking", ""),
                 "address": event.get("address", ""),
                 "website": event.get("website", ""),
                 "provider": event.get("provider", ""),
                 "phone": event.get("phone", ""),
-                "email": event.get("email", "")
+                "email": event.get("email", ""),
+                "primary_goal": event.get("primary_goal", ""),
+                "competition_level": event.get("competition_level", ""),
+                "typical_duration_hours": event.get("typical_duration_hours", ""),
+                "recommended_group_size_min": event.get("recommended_group_size_min", ""),
+                "recommended_group_size_max": event.get("recommended_group_size_max", "")
             }
 
             writer.writerow(row)
