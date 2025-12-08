@@ -215,6 +215,7 @@ def seed_event_options(session: Session) -> None:
             ),
             dict(
                 title="Linzer Bier: Brauereiführung & Verkostung",
+                category=EventCategory.food,
                 tags=["führung", "brauerei", "bier", "genuss", "teambuilding", "kultur"],
                 location_region="OOE",
                 est_price_pp=19,
@@ -291,6 +292,7 @@ def seed_event_options(session: Session) -> None:
             ),
             dict(
                 title="Deep Space 8K: Zukunftstrip im AEC Linz",
+                category=EventCategory.relax,
                 tags=["technik", "innovation", "kultur", "multimedia", "indoor"],
                 location_region="OOE",
                 est_price_pp=15,
@@ -315,6 +317,7 @@ def seed_event_options(session: Session) -> None:
             ),
             dict(
                 title="Segway Tour: Linz schwebend entdecken",
+                category=EventCategory.action,
                 tags=["segway", "outdoor", "sightseeing", "teambuilding"],
                 location_region="OOE",
                 est_price_pp=79,
@@ -339,6 +342,7 @@ def seed_event_options(session: Session) -> None:
             ),
             dict(
                 title="Mural Harbor: Graffiti Walk & Spray Class",
+                category=EventCategory.action,
                 tags=["graffiti", "streetart", "kreativ", "führung", "teambuilding", "outdoor"],
                 location_region="OOE",
                 est_price_pp=35,
@@ -363,6 +367,7 @@ def seed_event_options(session: Session) -> None:
             ),
             dict(
                 title="Stahlwelt Linz: Werkstour & Industriekultur",
+                category=EventCategory.relax,
                 tags=["industrie", "führung", "technik", "lernen", "teambuilding"],
                 location_region="OOE",
                 est_price_pp=22,
@@ -513,6 +518,7 @@ def seed_event_options(session: Session) -> None:
             ),
             dict(
                 title="Eisstockschießen & Bratl: Winter-Teamevent",
+                category=EventCategory.action,
                 tags=["eisstockschiessen", "winter", "sport", "teambuilding", "outdoor"],
                 location_region="OOE",
                 est_price_pp=28,
@@ -537,6 +543,7 @@ def seed_event_options(session: Session) -> None:
             ),
             dict(
                 title="Hollywood Megaplex: Privates Kino-Event",
+                category=EventCategory.relax,
                 tags=["kino", "eventlocation", "präsentation", "teamevent", "indoor"],
                 location_region="OOE",
                 est_price_pp=25,
@@ -561,6 +568,7 @@ def seed_event_options(session: Session) -> None:
             ),
             dict(
                 title="Cocktail-Kurs im Lennox: Mix it up Team!",
+                category=EventCategory.party,
                 tags=["cocktailkurs", "bar", "mixology", "teambuilding", "indoor"],
                 location_region="OOE",
                 est_price_pp=59,
