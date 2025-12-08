@@ -54,6 +54,12 @@ class EventCategory(str, Enum):
     party = "Party"
 
 
+class RiskLevel(str, Enum):
+    low = "low"
+    medium = "medium"
+    high = "high"
+
+
 class EventOptionBase(SQLModel):
     title: str
     category: EventCategory
@@ -67,6 +73,22 @@ class EventOptionBase(SQLModel):
     description: Optional[str] = None
     is_mystery: bool = False
     season: str = Field(default="all_year")
+    # Neue erweiterte Felder
+    short_description: Optional[str] = None
+    long_description: Optional[str] = None
+    physical_intensity: Optional[int] = Field(default=None, ge=1, le=5)
+    mental_challenge: Optional[int] = Field(default=None, ge=1, le=5)
+    social_interaction_level: Optional[int] = Field(default=None, ge=1, le=5)
+    price_comment: Optional[str] = None
+    external_rating: Optional[float] = Field(default=None, ge=1.0, le=5.0)
+    lead_time_min_days: Optional[int] = Field(default=None, ge=0)
+    risk_level: Optional[RiskLevel] = None
+    travel_time_from_office_minutes: Optional[int] = Field(default=None, ge=0)
+    address: Optional[str] = None
+    website: Optional[str] = None
+    provider: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
 
 
 class EventOption(EventOptionBase, table=True):

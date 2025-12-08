@@ -42,6 +42,18 @@ import { toast } from 'sonner';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { sanitizeName, sanitizeText, sanitizeStringArray } from '@/lib/sanitize';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import {
+  Tags,
+  TagsContent,
+  TagsEmpty,
+  TagsGroup,
+  TagsInput,
+  TagsItem,
+  TagsList,
+  TagsTrigger,
+  TagsValue,
+} from "@/components/kibo-ui/tags";
+import { CheckIcon } from 'lucide-react';
 
 const CampaignDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -183,6 +195,21 @@ const CampaignDetail = () => {
     (date: Date) => date.toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' }),
     []
   );
+
+  const handleTagRemove = useCallback((value: string) => {
+    if (!activityTagFilter.includes(value)) {
+      return;
+    }
+    setActivityTagFilter((prev) => prev.filter((v) => v !== value));
+  }, [activityTagFilter]);
+
+  const handleTagSelect = useCallback((value: string) => {
+    if (activityTagFilter.includes(value)) {
+      handleTagRemove(value);
+      return;
+    }
+    setActivityTagFilter((prev) => [...prev, value]);
+  }, [activityTagFilter, handleTagRemove]);
 
   const copyEventLink = useCallback(async () => {
     try {
@@ -809,25 +836,31 @@ const CampaignDetail = () => {
                   </fieldset>
                   <fieldset className="space-y-1.5">
                     <legend className="text-typo-body font-medium">Tags</legend>
-                    <div className="flex flex-wrap gap-2" role="group" aria-label="Tagfilter">
-                      {uniqueTags.map((tag) => (
-                        <Button
-                          key={tag}
-                          type="button"
-                          size="sm"
-                          variant={activityTagFilter.includes(tag) ? 'default' : 'outline'}
-                          onClick={() =>
-                            setActivityTagFilter((prev) =>
-                              prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-                            )
-                          }
-                          aria-pressed={activityTagFilter.includes(tag)}
-                          aria-label={`Tag ${tag} ${activityTagFilter.includes(tag) ? 'abwählen' : 'auswählen'}`}
-                        >
-                          {tag}
-                        </Button>
-                      ))}
-                    </div>
+                    <Tags className="max-w-full">
+                      <TagsTrigger>
+                        {activityTagFilter.map((tag) => (
+                          <TagsValue key={tag} onRemove={() => handleTagRemove(tag)}>
+                            {tag}
+                          </TagsValue>
+                        ))}
+                      </TagsTrigger>
+                      <TagsContent>
+                        <TagsInput placeholder="Tag suchen..." />
+                        <TagsList>
+                          <TagsEmpty />
+                          <TagsGroup>
+                            {uniqueTags.map((tag) => (
+                              <TagsItem key={tag} onSelect={handleTagSelect} value={tag}>
+                                {tag}
+                                {activityTagFilter.includes(tag) && (
+                                  <CheckIcon className="text-muted-foreground" size={14} />
+                                )}
+                              </TagsItem>
+                            ))}
+                          </TagsGroup>
+                        </TagsList>
+                      </TagsContent>
+                    </Tags>
                   </fieldset>
                 </div>
 
