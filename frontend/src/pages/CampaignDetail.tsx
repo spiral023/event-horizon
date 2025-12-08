@@ -1275,7 +1275,7 @@ const CampaignDetail = () => {
             </Card>
 
             <Dialog open={!!selectedActivity} onOpenChange={(open) => !open && setSelectedActivity(null)}>
-              <DialogContent className="max-w-5xl h-[90vh] p-0 gap-0 overflow-hidden bg-background">
+              <DialogContent className="max-w-5xl h-[90vh] p-0 gap-0 overflow-hidden bg-background" hideCloseButton={true}>
                 {selectedActivity && (
                   <EventDetailView
                     event={selectedActivity}
