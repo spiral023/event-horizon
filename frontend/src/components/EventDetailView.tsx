@@ -224,7 +224,16 @@ export const EventDetailView: React.FC<EventDetailViewProps> = ({
                          </div>
                          <div>
                              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">Anreise (zu Fuß)</p>
-                             <p className="font-semibold text-foreground text-lg leading-tight">
+                             <p className={cn(
+                                "font-semibold text-lg leading-tight",
+                                event.travel_time_from_office_minutes_walking !== undefined && event.travel_time_from_office_minutes_walking !== null
+                                  ? event.travel_time_from_office_minutes_walking > 30
+                                    ? "text-red-500"
+                                    : event.travel_time_from_office_minutes_walking > 15
+                                      ? "text-orange-500"
+                                      : "text-foreground"
+                                  : "text-foreground"
+                             )}>
                                 {event.travel_time_from_office_minutes_walking !== undefined && event.travel_time_from_office_minutes_walking !== null
                                   ? `${event.travel_time_from_office_minutes_walking} Min.`
                                   : 'k.A.'}
